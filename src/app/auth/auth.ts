@@ -1,12 +1,17 @@
-export async function registerUser(nombre: string, email: string, password: string, dni: string) {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  // Crear el cuerpo de la solicitud (lo que estamos enviando)
-  const requestBody = { nombre, email, password, dni };
-  
-  // Imprimir el JSON que se enviará
+export async function registerUser(
+  firstName: string,
+  lastName: string,
+  email: string,
+  password: string,
+  dni: string
+) {
+  const apiUrl = process.env.NEXT_PUBLIC_API_V1_URL;
+
+  const requestBody = { firstName, lastName, email, password, dni };
+
   console.log("Cuerpo de la solicitud:", JSON.stringify(requestBody));
 
-  const response = await fetch(`${apiUrl}/usuarios`, {
+  const response = await fetch(`${apiUrl}/auth/register`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -18,9 +23,12 @@ export async function registerUser(nombre: string, email: string, password: stri
   console.log("Respuesta de la API:", responseData);
 
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Error al registrar usuario.");
+    throw new Error(
+      responseData?.errors?.email ||
+      responseData?.message ||
+      "Error al registrar usuario."
+    );
   }
 
-  return response.json();
+  return responseData;
 }

@@ -1,10 +1,36 @@
+"use client";
+
+import { useEffect, useState } from "react";
 
 export default function Home() {
+
+  const [healthStatus, setHealthStatus] = useState("");
+
+  useEffect(() => {
+    async function checkHealth() {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/health`);
+        const text = await res.text();
+        setHealthStatus(text); // Esto será "OK 👌"
+      } catch (error) {
+        console.error("Error al verificar el estado del servidor:", error);
+        setHealthStatus("Servidor no disponible ❌");
+      }
+    }
+
+    checkHealth();
+  }, []);
+
   return (
     <main className="min-h-screen">
       <section className="bg-gradient-to-r from-blue-100 to-white py-20 text-center">
         <h1 className="text-5xl font-bold text-blue-800 mb-4">Bienvenido a Santa Catalina S.A.</h1>
         <p className="text-xl text-gray-700">Conectando Lima con responsabilidad y compromiso.</p>
+        {healthStatus && (
+          <p className="mt-4 text-green-600 font-medium">
+            Estado del servidor: {healthStatus}
+          </p>
+        )}
       </section>
 
       <section className="py-16 px-4 text-center bg-white  mx-auto container">

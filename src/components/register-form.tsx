@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { registerUser } from "@/app/auth/auth";
 
 export default function RegisterCard({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  const [nombre, setNombre] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [dni, setDni] = useState("");
@@ -20,13 +21,19 @@ export default function RegisterCard({ className, ...props }: React.HTMLAttribut
 
   // Validar todo el formulario
   useEffect(() => { // Validación individual
-    const isNombreValido = nombre.trim().length >= 8;
-    const isEmailValido = /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/.test(email);
-    const isPasswordValido = password.length >= 6;
-    const isDniValido = /^\d{8}$/.test(dni);
+    const isFirstNameValid  = firstName.trim().length >= 8;
+    const isLastNameValid  = lastName.trim().length >= 8;
+    const isEmailValid = /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/.test(email);
+    const isPasswordValid = password.length >= 6;
+    const isDniValid = /^\d{8}$/.test(dni);
   
-    setFormValid(isNombreValido && isEmailValido && isPasswordValido && isDniValido);
-  }, [nombre, email, password, dni]); // Validar todo el formulario
+    setFormValid(
+      isFirstNameValid &&
+      isLastNameValid &&
+      isEmailValid &&
+      isPasswordValid &&
+      isDniValid);
+  }, [firstName, lastName, email, password, dni]); // Validar todo el formulario
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,9 +42,12 @@ export default function RegisterCard({ className, ...props }: React.HTMLAttribut
     setLoading(true);
 
     try {
-      const response = await registerUser(nombre, email, password, dni);
-      if (response.message === "Usuario registrado correctamente.") {
+      const response = await registerUser(firstName, lastName, email, password, dni);
+
+      if (response.status === 201) {
         window.location.href = "/auth/login";
+      } else {
+        setError(response.message || "Error al registrar usuario.");
       }
     } catch (error) {
       if (error instanceof Error) {
@@ -61,13 +71,23 @@ export default function RegisterCard({ className, ...props }: React.HTMLAttribut
           <form onSubmit={handleSubmit}>
             <div className="grid gap-6">
               <div className="grid gap-2">
-                <Label htmlFor="nombre">Nombre completo</Label>
+                <Label htmlFor="nombre">Nombre</Label>
                 <Input
-                  id="nombre"
+                  id="firstName"
                   type="text"
-                  placeholder="Juan Pérez"
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
+                  placeholder="Juan"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="nombre">Apellido</Label>
+                <Input
+                  id="lastName"
+                  type="text"
+                  placeholder="Pérez"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
                 />
               </div>
               <div className="grid gap-2">

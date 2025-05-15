@@ -15,8 +15,10 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
   const [error, setError] = useState("");
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    setError("");
 
     // Validación básica
     if (!email.match(/^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/)) {
@@ -29,9 +31,29 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
       return;
     }
 
-    // Aquí iría la lógica para hacer la autenticación
-    // Si es correcta, redirigir al dashboard, por ejemplo
-    router.push("/dashboard");
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_V1_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+      console.log(data.message);
+
+      if (res.ok && data.status === 200) {
+        router.push("/dashboard");
+      } else if (data.status === 401) {
+        setError("Usuario o contraseña inválidas");
+      } else {
+        setError(data.message || "Error desconocido");
+      }
+    } catch (error) {
+      console.error("Error al hacer login:", error);
+      setError("Error de conexión con el servidor");
+    }
   };
 
   return (
