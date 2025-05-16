@@ -3,7 +3,6 @@ import {
   MapPin,
   BadgeDollarSign,
   QrCode,
-  ScanLine,
   Wallet,
   CreditCard,
   History,
@@ -44,7 +43,7 @@ export const navMainData = [
     icon: QrCode,
     items: [
       { title: "Generar QR", url: "#" },
-      { title: "Escanear QR", url: "#" }, // podrías usar ScanLine si quieres un ícono específico
+      { title: "Escanear QR", url: "#" },
     ],
   },
   {
