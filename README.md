@@ -1,36 +1,33 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## 📌 Información del Proyecto
 
-## Getting Started
+### 👤 Usuario Administrador de Prueba
 
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+email: josefa.fernandez@example.com
+password: miClave123
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Puedes usar estas credenciales para iniciar sesión como administrador en la plataforma.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 📄 Documentación del Proyecto
 
-## Learn More
+Documento Word – Avance del Proyecto Final:  
+👉 https://utpedupe-my.sharepoint.com/:w:/r/personal/u20231752_utp_edu_pe/_layouts/15/Doc.aspx?sourcedoc=%7B73FC8CA6-C7BB-4F33-AFAA-C55C1B8C7139%7D&file=Documentaci%C3%B3n%20Avance%20de%20Proyecto%20Final%201.docx&action=default&mobileredirect=true
 
-To learn more about Next.js, take a look at the following resources:
+Presentación del Proyecto (Canva):  
+👉 https://www.canva.com/design/DAGk9HpPXdU/AeWY-1prwUbY6-5yI5PoAA/edit
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 📡 API - Usuarios
 
-## Deploy on Vercel
+🔗 Endpoint para listar usuarios:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+GET https://pasajeqr.onrender.com/api/v1/user
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Este endpoint devuelve un listado de todos los usuarios registrados en el sistema.
+

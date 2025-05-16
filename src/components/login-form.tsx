@@ -44,7 +44,21 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
       console.log(data.message);
 
       if (res.ok && data.status === 200) {
-        router.push("/dashboard");
+        const role = data.data.user.role;
+
+        // Guarda token si es necesario
+        localStorage.setItem("token", data.data.token);
+        localStorage.setItem("user", JSON.stringify(data.data.user));
+
+        // Redirige según el rol
+        if (role === "ADMIN") {
+          router.push("/dashboard");
+        } else if (role === "PASSENGER") {
+          router.push("/customer");
+        } else {
+          // Si hay otro rol no previsto
+          setError("Rol no reconocido. Contacte al administrador.");
+        }
       } else if (data.status === 401) {
         setError("Usuario o contraseña inválidas");
       } else {
