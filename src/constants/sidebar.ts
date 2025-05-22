@@ -17,24 +17,24 @@ export const navMainData = [
     url: "#",
     icon: Users,
     items: [
-      { title: "Administradores", url: "#" },
-      { title: "Pasajeros", url: "#" },
-      { title: "Conductores", url: "#" },
+      { title: "Administradores", url: "/dashboard/user/admin" },
+      { title: "Pasajeros", url: "/dashboard/user/passenger" },
+      { title: "Conductores", url: "/dashboard/user/driver" },
     ],
   },
   {
     title: "Buses",
-    url: "#",
+    url: "/dashboard/bus",
     icon: BusFront,
   },
   {
     title: "Paraderos",
-    url: "#",
+    url: "/dashboard/stop",
     icon: MapPin,
   },
   {
     title: "Tarifas",
-    url: "#",
+    url: "/dashboard/fare",
     icon: BadgeDollarSign,
   },
   {
