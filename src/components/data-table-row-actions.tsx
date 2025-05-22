@@ -28,7 +28,17 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog"
 
-export function RowActions({ rowData }: { rowData: any }) {
+type RowData = {
+  id: number
+  header: string
+  type: string
+  status: string
+  target: string
+  limit: string
+  reviewer: string
+}
+
+export function RowActions({ rowData }: { rowData: RowData }) {
   const [openEdit, setOpenEdit] = useState(false)
   const [openPreview, setOpenPreview] = useState(false)
   const [openDelete, setOpenDelete] = useState(false)
