@@ -120,3 +120,21 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Ocultar íconos nativos del input password en todos los navegadores */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+input[type="password"]::-webkit-credentials-auto-fill-button,
+input[type="password"]::-webkit-clear-button,
+input[type="password"]::-webkit-inner-spin-button,
+input[type="password"]::-webkit-contacts-auto-fill-button {
+  display: none !important;
+  pointer-events: none;
+  height: 0;
+  width: 0;
+  visibility: hidden;
+  opacity: 0;
+}

@@ -30,9 +30,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const data = {
     user: {
-      name: user?.name ?? "",
+      firstName: user?.firstName ?? "",
+      lastName: user?.lastName ?? "",
       email: user?.email ?? "",
-      avatar: "/avatars/default.jpg"
     }
   }
 
@@ -40,10 +40,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <TeamSwitcher team={{
-      name: "Santa Catalina S.A.",
-      logo: BusFront, 
-      plan: "Transportes Urbanos"
-    }} />
+          name: "Santa Catalina S.A.",
+          logo: BusFront, 
+          plan: "Transportes Urbanos"
+        }} />
       </SidebarHeader>
       <SidebarContent>
         <NavMain labelGroup={titleNavMain} items={navMainData} />

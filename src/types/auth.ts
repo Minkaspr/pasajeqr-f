@@ -2,7 +2,8 @@ import { Role } from "./roles"
 
 export interface AuthenticatedUser {
   id: number
-  name: string
+  firstName: string
+  lastName: string
   email: string
   role: Role
 }

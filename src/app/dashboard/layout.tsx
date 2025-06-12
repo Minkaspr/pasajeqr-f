@@ -1,22 +1,38 @@
+"use client"
+
+import { usePathname } from "next/navigation"
 import { AppSidebar } from "@/components/app-sidebar"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { Toaster } from "@/components/ui/sonner"
+import { navMainData } from "@/constants/sidebar"
 
-export default function DashboardLayout (
-  { children }: Readonly<{ children: React.ReactNode }>
-) {
+function getPageMetadata(pathname: string): { title: string; description?: string } {
+  for (const item of navMainData) {
+    if (item.url === pathname) {
+      return { title: item.title, description: item.description }
+    }
+    if (item.items) {
+      for (const subItem of item.items) {
+        if (subItem.url === pathname || pathname.startsWith(subItem.url)) {
+          return { title: subItem.title, description: subItem.description }
+        }
+      }
+    }
+  }
+  return { title: "Dashboard" }
+}
+
+export default function DashboardLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  const pathname = usePathname()
+  const { title: pageTitle, description: pageDescription } = getPageMetadata(pathname)
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -25,17 +41,14 @@ export default function DashboardLayout (
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">Dashboard</BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Sección</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
+            <div className="flex flex-col">
+              <h1 className="text-xl font-semibold leading-tight">
+                {pageTitle}
+              </h1>
+              {pageDescription && (
+                <p className="text-sm text-muted-foreground">{pageDescription}</p>
+              )}
+            </div>
           </div>
         </header>
 
@@ -43,6 +56,7 @@ export default function DashboardLayout (
           {children}
         </main>
       </SidebarInset>
+      <Toaster />
     </SidebarProvider>
   )
 }

@@ -57,5 +57,5 @@ function TooltipContent({
     </TooltipPrimitive.Portal>
   )
 }
-
-export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
+const TooltipArrow = TooltipPrimitive.Arrow
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider, TooltipArrow }

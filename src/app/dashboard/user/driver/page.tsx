@@ -1,8 +1,17 @@
-export default function DriverPage() {
+import { DriverTableClient } from "./client/DriverTableClient";
+import { getDrivers } from "./lib/api";
+
+export default async function DriverPage() {
+  const pageIndex = 0;
+  const pageSize = 10;
+  const { drivers, currentPage, totalItems } = await getDrivers({ page: pageIndex, limit: pageSize });
+
   return (
-    <div>
-      <h1 className="text-xl font-semibold">Panel de Conductores</h1>
-      <p>Gestiona tus conductores aquí.</p>
-    </div>
-  )
+    <DriverTableClient
+      initialData={drivers}
+      totalItems={totalItems}
+      initialPageIndex={currentPage}
+      initialPageSize={pageSize}
+    />
+  );
 }
