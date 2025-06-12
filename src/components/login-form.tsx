@@ -32,10 +32,10 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
     setServerError("");
 
     if (!isFormValid) {
-    setEmailTouched(true);
-    setPasswordTouched(true);
-    return;
-  }
+      setEmailTouched(true);
+      setPasswordTouched(true);
+      return;
+    }
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_V1_URL}/auth/login`, {
