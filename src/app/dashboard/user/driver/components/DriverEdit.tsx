@@ -113,7 +113,7 @@ export function DriverEdit({
       <div className="grid gap-4 py-4">
         {/* Nombre */}
         <div className="grid grid-cols-4 items-start gap-4">
-          <Label htmlFor="firstName" className="text-right">Nombre</Label>
+          <Label htmlFor="firstName" className="text-right">Nombres</Label>
           <div className="col-span-3">
             <Input
               id="firstName"
@@ -132,7 +132,7 @@ export function DriverEdit({
 
         {/* Apellido */}
         <div className="grid grid-cols-4 items-start gap-4">
-          <Label htmlFor="lastName" className="text-right">Apellido</Label>
+          <Label htmlFor="lastName" className="text-right">Apellidos</Label>
           <div className="col-span-3">
             <Input
               id="lastName"

@@ -196,8 +196,8 @@ export function DriverAdd() {
           </DialogHeader>
 
           <form className="grid gap-4 py-4" key={formKey} onSubmit={handleSubmit}>
-            {renderField("firstName", "Nombre")}
-            {renderField("lastName", "Apellido")}
+            {renderField("firstName", "Nombres")}
+            {renderField("lastName", "Apellidos")}
             {renderField("dni", "DNI")}
             {renderField("email", "Correo", "email")}
             {/* Password */}

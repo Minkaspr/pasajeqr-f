@@ -1,40 +1,43 @@
 'use client';
 
-import { useDriverTable } from '../hooks/useDriverTable';
 import { DriverTable } from '../components/DriverTable';
 import { DriverListItem } from '@/types/driver';
 import { DriverRefreshProvider } from './DriverRefreshContext';
 import { toast } from 'sonner';
-import { deleteMultipleDrivers } from '../lib/api';
-import { useState } from 'react';
+import { deleteMultipleDrivers, getDrivers } from '../lib/api';
+import { useCallback, useEffect, useState } from 'react';
 
-interface Props {
-  initialData: DriverListItem[];
-  totalItems: number;
-  initialPageIndex: number;
-  initialPageSize: number;
-}
+export function DriverTableClient() {
+  const initialPageIndex = 0;
+  const initialPageSize = 10;
 
-export function DriverTableClient({
-  initialData,
-  initialPageIndex,
-  initialPageSize,
-  totalItems,
-}: Props) {
-  const {
-    data,
-    pageIndex,
-    pageSize,
-    setPageIndex,
-    setPageSize,
-    fetchData,
-  } = useDriverTable(initialData, initialPageIndex, initialPageSize, totalItems);
-
+  const [data, setData] = useState<DriverListItem[]>([]);
+  const [pageIndex, setPageIndex] = useState(initialPageIndex);
+  const [pageSize, setPageSize] = useState(initialPageSize);
+  const [totalItems, setTotalItems] = useState(0);
   const [deletingIds, setDeletingIds] = useState<number[]>([]);
+
+  const fetchData = useCallback(
+    async (page: number = pageIndex, size: number = pageSize): Promise<void> => {
+      try {
+        const res = await getDrivers({ page, size });
+        setData(res.drivers);
+        setTotalItems(res.totalItems);
+      } catch (error) {
+        console.error("Error al cargar los conductores", error);
+      }
+    },
+    [pageIndex, pageSize]
+  );
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handlePaginationChange = (newPage: number, newSize: number) => {
     setPageIndex(newPage);
     setPageSize(newSize);
+    fetchData(newPage, newSize);
   };
 
   const handleDeleteSelected = async (ids: number[]) => {
@@ -47,7 +50,7 @@ export function DriverTableClient({
       toast.error("Error al eliminar los conductores");
       console.error(error);
     } finally {
-      setDeletingIds([]); // ✅ Siempre limpiamos, sin importar el resultado
+      setDeletingIds([]);
     }
   };
 
