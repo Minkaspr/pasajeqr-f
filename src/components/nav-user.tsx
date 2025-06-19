@@ -1,5 +1,6 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import {
   ChevronsUpDown,
   LogOut,
@@ -38,6 +39,7 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const router = useRouter()
 
   function getInitials(firstName?: string, lastName?: string): string {
     const first = firstName?.[0] ?? "";
@@ -45,6 +47,15 @@ export function NavUser({
     const initials = `${first}${last}`.toUpperCase();
 
     return initials || "US"; // fallback si ambos son falsy
+  }
+
+  const handleLogout = () => {
+    // ✅ Limpiar almacenamiento
+    localStorage.removeItem("token")
+    localStorage.removeItem("user")
+
+    // ✅ Redirigir al home
+    router.push("/")
   }
 
   return (
@@ -100,7 +111,7 @@ export function NavUser({
             <DropdownMenuSeparator />
 
             {/* Cerrar sesión */}
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 size-4" />
               Cerrar sesión
             </DropdownMenuItem>

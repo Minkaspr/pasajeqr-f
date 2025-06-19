@@ -1,8 +1,9 @@
+import { ParaderosClientView } from "./components/ParaderosClientView";
+
 export default function StopPage() {
   return (
-    <div>
-      <h1 className="text-xl font-semibold">Panel de Paraderos</h1>
-      <p>Gestiona tus paraderos aquí.</p>
+    <div className="pt-4">
+      <ParaderosClientView/>
     </div>
   )
 }
