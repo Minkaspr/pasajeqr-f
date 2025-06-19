@@ -1,10 +1,10 @@
-import { DataTable } from "@/components/data-table";
-import data from "./data.json";
+import PassengerClientView from "./components/PassengerClientView";
 
 export default function PassengerPage() {
   return (
     <div>
-      <DataTable data={data} />
+      {/* <DataTable data={data} /> */}
+      <PassengerClientView/>
     </div>
   )
 }
