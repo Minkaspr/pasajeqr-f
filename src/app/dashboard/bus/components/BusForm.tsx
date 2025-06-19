@@ -72,7 +72,7 @@ export function BusForm({ open, onClose, onSubmit, editingBus }: Props) {
       form.reset(values)
     } else {
     }
-  }, [open]) // ❗ Solo dependemos de `open` para evitar warning
+  }, [editingBus?.capacity, editingBus?.model, editingBus?.plate, editingBus?.status, form, open]) 
 
   const handleInternalSubmit = (values: BusFormValues) => {
     console.log("✅ Form submitted:", values)

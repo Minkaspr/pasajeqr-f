@@ -9,7 +9,7 @@ import { AdminRefreshProvider } from "./AdminRefreshContext"
 
 export default function AdminClientView() {
   const [admins, setAdmins] = useState<AdminListItem[]>([])
-  const [searchTerm, setSearchTerm] = useState("")
+  const [searchTerm] = useState("")
   const [pageIndex, setPageIndex] = useState(0)
   const [pageSize, setPageSize] = useState(10)
 
