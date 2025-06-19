@@ -25,11 +25,18 @@ type FormData = z.infer<typeof formSchema>
 interface SettingsFormProps {
   user: UserData
   onSave: (data: FormData) => void
+  onLogout: () => void
   isDarkMode: boolean
   setIsDarkMode: (value: boolean) => void
 }
 
-export function SettingsForm({ user, onSave, isDarkMode, setIsDarkMode }: SettingsFormProps) {
+export function SettingsForm({
+  user,
+  onSave,
+  onLogout,
+  isDarkMode,
+  setIsDarkMode,
+}: SettingsFormProps) {
   const {
     register,
     handleSubmit,
@@ -58,21 +65,37 @@ export function SettingsForm({ user, onSave, isDarkMode, setIsDarkMode }: Settin
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+
           <div>
-            <Input {...register("name")} placeholder="Tu nombre" />
+            <Label htmlFor="name">Nombre</Label>
+            <Input id="name" {...register("name")} placeholder="Tu nombre" />
             {errors.name && (
               <p className="text-sm text-red-500 mt-1">{errors.name.message}</p>
             )}
           </div>
+
           <div>
-            <Input type="password" {...register("password")} placeholder="Nueva contraseña" />
+            <Label htmlFor="email">Correo electrónico</Label>
+            <Input id="email" value={user.email} readOnly disabled className="opacity-70 cursor-not-allowed" />
+          </div>
+
+          <div>
+            <Label htmlFor="dni">DNI</Label>
+            <Input id="dni" value={user.dni} readOnly disabled className="opacity-70 cursor-not-allowed" />
+          </div>
+
+          <div>
+            <Label htmlFor="password">Nueva contraseña</Label>
+            <Input id="password" type="password" {...register("password")} placeholder="Nueva contraseña" />
             {errors.password && (
               <p className="text-sm text-red-500 mt-1">{errors.password.message}</p>
             )}
           </div>
 
+          {/* Botón Guardar Cambios */}
           <Button type="submit">Guardar Cambios</Button>
 
+          {/* Modo Oscuro */}
           <div className="flex items-center justify-between pt-4 border-t">
             <Label htmlFor="dark-mode">Modo Oscuro</Label>
             <Switch
@@ -81,6 +104,16 @@ export function SettingsForm({ user, onSave, isDarkMode, setIsDarkMode }: Settin
               onCheckedChange={setIsDarkMode}
             />
           </div>
+
+          {/* Botón Cerrar Sesión */}
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={onLogout}
+            className="mt-4"
+          >
+            Cerrar Sesión
+          </Button>
         </form>
       </CardContent>
     </Card>

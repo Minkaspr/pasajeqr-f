@@ -20,6 +20,7 @@ export interface UserData {
   name: string
   email: string
   password: string
+  dni: string
 }
 
 export default function ClientInterface() {
@@ -27,6 +28,7 @@ export default function ClientInterface() {
     name: "Juan Pérez",
     email: "juan@example.com",
     password: "",
+    dni: "12345678",
   })
 
   const [balance, setBalance] = useState(1500)
@@ -58,6 +60,11 @@ export default function ClientInterface() {
   const handleOpenSettings = () => {
     setShowSettings(true)
   }
+
+  const handleLogout = () => {
+  console.log("Sesión cerrada")
+  window.location.reload()
+}
 
   return (
     <main className="container mx-auto px-4 py-8 max-w-6xl text-foreground space-y-6">
@@ -125,11 +132,13 @@ export default function ClientInterface() {
       {showSettings && (
         <div className="max-w-md mx-auto space-y-4">
           <SettingsForm
-            user={user}
-            onSave={handleSave}
-            isDarkMode={isDarkMode}
-            setIsDarkMode={setIsDarkMode}
-          />
+          user={user}
+          onSave={handleSave}
+          onLogout={handleLogout}
+          isDarkMode={isDarkMode}
+          setIsDarkMode={setIsDarkMode}
+        />
+
         </div>
       )}
 
