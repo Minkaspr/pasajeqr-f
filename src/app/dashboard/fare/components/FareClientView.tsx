@@ -70,18 +70,15 @@ export function FareClientView() {
   const [itemsPerPage, setItemsPerPage] = useState(5)
 
   // Busqueda
-  const [searchInput, setSearchInput] = useState("")
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchTerm, setSearchTerm] = useState("")
 
 
   const filteredFares = useMemo(() => {
-    const query = searchQuery.toLowerCase().trim()
+    const query = searchTerm.toLowerCase().trim()
     return fares.filter((fare) =>
       fare.associationCode.toLowerCase().includes(query)
     )
-  }, [fares, searchQuery])
-
-
+  }, [searchTerm, fares])
 
   const totalPages = Math.ceil(filteredFares.length / itemsPerPage)
   const paginatedFares = useMemo(() => {
@@ -117,7 +114,6 @@ export function FareClientView() {
     }
   }
 
-
   const handleEdit = (fare: Fare) => {
     setEditingFare(fare)
     setIsFormOpen(true)
@@ -127,22 +123,18 @@ export function FareClientView() {
     setFares((prev) => prev.filter((f) => f.id !== id))
   }
 
-  // Reset page if filters change
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [searchQuery, itemsPerPage])
-
   useEffect(() => {
     setFares(generateMockFares())
   }, [])
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6">
+    <div className="@container w-full max-w-5xl mx-auto px-4 py-6 space-y-4">
       <FareControls
+        onSearch={(value) => {
+          setSearchTerm(value)
+          setCurrentPage(1)
+        }}
         onCreate={handleCreate}
-        searchInput={searchInput}
-        setSearchInput={setSearchInput}
-        onSearch={() => setSearchQuery(searchInput)}
       />
 
       <FareList

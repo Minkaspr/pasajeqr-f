@@ -5,9 +5,7 @@ export default function PublicLayout (
 ) {
   return (
     <div>
-      <header>
-          <PublicNavbar />
-      </header>
+        <PublicNavbar />
         {children}
     </div>
   )

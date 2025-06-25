@@ -45,15 +45,15 @@ export function UserInfoCard({
         </Button>
       )}
 
-      <Card className="border-primary/20">
+      <Card className="border-primary/20 shadow-sm">
         <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <User className="h-5 w-5" />
+          <CardTitle className="text-xl flex items-center gap-2">
+            <User className="h-5 w-5 text-primary" />
             Información del Usuario
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <UserField label="Nombre" value={user.name} icon={<User className="h-4 w-4 text-primary" />} />
             <UserField label="DNI" value={user.dni} icon={<CreditCard className="h-4 w-4 text-primary" />} />
             <UserField label="Correo" value={user.email} icon={<Mail className="h-4 w-4 text-primary" />} />
@@ -64,37 +64,40 @@ export function UserInfoCard({
             />
           </div>
 
-          <div className="pt-4 border-t">
-            <Label htmlFor="amount" className="mb-2 block">Monto a Recargar</Label>
-            <div className="flex gap-3">
-              <div className="flex-1">
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm">S/</span>
-                  <Input
-                    id="amount"
-                    type="number"
-                    placeholder="0.00"
-                    min="0.01"
-                    step="0.01"
-                    value={amount}
-                    onChange={(e) => onAmountChange(e.target.value)}
-                    className={cn("pl-10", error && "border-red-500")}
-                  />
-                </div>
-                {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
+          <div className="pt-6 border-t space-y-4">
+            <Label htmlFor="amount" className="text-base font-medium">
+              Monto a Recargar
+            </Label>
+            <div className="space-y-4">
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm">
+                  S/
+                </span>
+                <Input
+                  id="amount"
+                  type="number"
+                  placeholder="0.00"
+                  min="0.01"
+                  step="0.01"
+                  value={amount}
+                  onChange={(e) => onAmountChange(e.target.value)}
+                  className={cn("pl-10 text-lg", error && "border-red-500")}
+                />
               </div>
+              {error && <p className="text-sm text-red-500">{error}</p>}
 
-              <Button onClick={onRecharge} disabled={isRechargeDisabled}>
-                Recargar
+              {estimatedBalance && !error && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-sm text-blue-700">
+                    Nuevo saldo estimado: <span className="font-semibold text-blue-800">{estimatedBalance}</span>
+                  </p>
+                </div>
+              )}
+
+              <Button onClick={onRecharge} disabled={isRechargeDisabled} className="w-full sm:w-auto" size="lg">
+                Confirmar Recarga
               </Button>
             </div>
-
-            {estimatedBalance && !error && (
-              <p className="text-sm text-muted-foreground mt-2">
-                Nuevo saldo estimado:{" "}
-                <span className="font-medium text-primary">{estimatedBalance}</span>
-              </p>
-            )}
           </div>
         </CardContent>
       </Card>

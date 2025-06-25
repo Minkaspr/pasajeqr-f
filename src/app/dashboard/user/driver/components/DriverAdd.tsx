@@ -181,7 +181,7 @@ export function DriverAdd() {
     <div className="flex items-center justify-end">
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" size="sm">
+          <Button variant="outline">
             <PlusIcon className="mr-2 h-4 w-4" />
             Añadir Conductor
           </Button>

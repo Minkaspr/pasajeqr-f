@@ -10,9 +10,10 @@ type Props = {
   onCreate: () => void
 }
 
-export function BusControls({ onSearch, onCreate }: Props) {
+export function ServiceControls({ onSearch, onCreate }: Props) {
+  
   const [searchInput, setSearchInput] = useState("")
-
+  
   const handleSearch = () => {
     onSearch(searchInput)
   }
@@ -23,7 +24,7 @@ export function BusControls({ onSearch, onCreate }: Props) {
       <div className="flex gap-2 w-full @md:max-w-sm">
         <div className="relative flex-1">
           <Input
-            placeholder="Buscar por placa o modelo..."
+            placeholder="Buscar por código (ej. SRV-1234)..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -53,7 +54,7 @@ export function BusControls({ onSearch, onCreate }: Props) {
 
       <Button onClick={onCreate} className="px-3 @lg:px-4 shrink-0">
         <Plus className="w-4 h-4" />
-        <span className="hidden @lg:inline ml-1">Nuevo Bus</span>
+        <span className="hidden @lg:inline ml-1">Nuevo Servicio</span>
       </Button>
     </div>
   )

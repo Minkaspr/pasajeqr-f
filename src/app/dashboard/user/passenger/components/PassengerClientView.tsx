@@ -18,7 +18,7 @@ export default function PassengerClientView() {
   }, [pageIndex, pageSize])
 
   return (
-    <div>
+    <div className="@container px-2 sm:px-4 md:px-6">
       <PassengerTable
         data={passengers}
         totalItems={getPassengers().length}
