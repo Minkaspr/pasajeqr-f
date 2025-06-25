@@ -42,7 +42,7 @@ export function ServiceTable({ services, onEdit, onDelete, startIndex }: Props) 
   }
 
   return (
-    <div className="border rounded-lg overflow-x-auto">
+    <div className="border rounded-lg">
       <Table>
         <TableHeader>
           <TableRow>

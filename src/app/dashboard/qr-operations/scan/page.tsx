@@ -74,9 +74,8 @@ export default function ScanQRCodePage() {
   
   const hasScannedRef = useRef(false)
   const [isRescanning, setIsRescanning] = useState(false)
-  
+  const [showPermissionDialog, setShowPermissionDialog] = useState(true)
 
-  // Obtener cámaras disponibles
   useEffect(() => {
     Html5Qrcode.getCameras()
       .then((devices) => {
@@ -91,11 +90,18 @@ export default function ScanQRCodePage() {
       })
       .catch((err) => {
         console.warn("Error obteniendo cámaras:", err)
-        setStatus("error")
+
+        if (
+          err instanceof DOMException &&
+          (err.name === "NotAllowedError" || err.name === "PermissionDeniedError")
+        ) {
+          setStatus("permissions_denied")
+        } else {
+          setStatus("error")
+        }
       })
   }, [])
 
-  // Limpiar scanner al desmontar
   useEffect(() => {
     return () => {
       if (scannerInstance) {
@@ -106,7 +112,6 @@ export default function ScanQRCodePage() {
       }
     }
   }, [scannerInstance])
-
 
   const handleScanSuccess = (decodedText: string) => {
     try {
@@ -274,6 +279,11 @@ export default function ScanQRCodePage() {
   }
 
   const startScanning = () => {
+    if (status === "permissions_denied") {
+      toast.error("No puedes escanear sin dar permisos de cámara")
+      return
+    }
+
     const scannerId = getScannerId()
     const readerContainer = document.getElementById(scannerId)
 
@@ -288,7 +298,7 @@ export default function ScanQRCodePage() {
     }
   }
 
-  const stopScanning = () => {
+  /* const stopScanning = () => {
     if (scannerInstance) {
       const safeClear = () => {
         try {
@@ -320,7 +330,32 @@ export default function ScanQRCodePage() {
 
     setStatus("ready")
     setSelectedImage(null)
+  } */
+  const stopScanning = async () => {
+    if (!scannerInstance) return;
+
+    try {
+      if ("stop" in scannerInstance && typeof scannerInstance.stop === "function") {
+        await scannerInstance.stop()
+      }
+
+      await scannerInstance.clear() 
+    } catch (err) {
+      console.warn("Error al detener o limpiar el escáner:", err)
+    } finally {
+      setScannerInstance(null)
+      if (status !== "permissions_denied") {
+        setStatus("ready")
+      }
+      setSelectedImage(null)
+    }
   }
+
+  useEffect(() => {
+    if (status === "permissions_denied") {
+      setShowPermissionDialog(true)
+    }
+  }, [status])
 
   const resetScanner = () => {
     setScannedResult(null)
@@ -345,7 +380,6 @@ export default function ScanQRCodePage() {
       hasScannedRef.current = false
 
       if (isRescanning) {
-        // 🔁 si fue "Escanear otro", no detenemos
         return
       }
 
@@ -573,12 +607,25 @@ export default function ScanQRCodePage() {
                 {statusInfo.icon}
                 <span className={`text-sm font-medium ${statusInfo.color}`}>{statusInfo.text}</span>
               </div>
+              {status === "permissions_denied" && (
+                <div className="mt-2 text-sm text-muted-foreground space-y-2">
+                  <p>
+                    Para usar la cámara, ve a la configuración de tu navegador y permite el acceso a la cámara para este sitio.
+                  </p>
+                  <p>
+                    En Chrome/Edge, puedes ir manualmente a: <br />
+                    <code className="bg-muted px-1 py-0.5 rounded text-xs">
+                      chrome://settings/content/camera
+                    </code>
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
           {/* Alerta de permisos */}
-          {status === "permissions_denied" && (
-            <AlertDialog open onOpenChange={() => setStatus("ready")}>
+          {status === "permissions_denied" && showPermissionDialog  && (
+            <AlertDialog open>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle className="flex items-center gap-2 text-red-600">
@@ -590,7 +637,7 @@ export default function ScanQRCodePage() {
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Entendido</AlertDialogCancel>
+                  <AlertDialogCancel onClick={() => setShowPermissionDialog(false)}>Entendido</AlertDialogCancel>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>

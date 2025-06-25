@@ -53,15 +53,17 @@ export default function AdminClientView() {
   }
 
   return (
-    <AdminRefreshProvider>
-      <AdminTable
-        data={admins}
-        totalItems={totalItems}
-        pageIndex={pageIndex}
-        pageSize={pageSize}
-        onPaginationChange={handlePaginationChange}
-        onDeleteSelected={handleDeleteSelected}
-      />
-    </AdminRefreshProvider>
+    <div className="@container px-2 sm:px-4 md:px-6"> 
+      <AdminRefreshProvider>
+        <AdminTable
+          data={admins}
+          totalItems={totalItems}
+          pageIndex={pageIndex}
+          pageSize={pageSize}
+          onPaginationChange={handlePaginationChange}
+          onDeleteSelected={handleDeleteSelected}
+        />
+      </AdminRefreshProvider>
+    </div>
   )
 }

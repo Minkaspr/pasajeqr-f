@@ -80,7 +80,7 @@ export default function BusClientView() {
     }).format(date)
 
   return (
-    <div className="max-w-5xl mx-auto py-6 space-y-4">
+    <div className="@container w-full max-w-5xl mx-auto px-4 py-6 space-y-4">
       <BusControls
         onSearch={(value) => {
           setSearchTerm(value)
@@ -88,7 +88,6 @@ export default function BusClientView() {
         }}
         onCreate={handleCreate}
       />
-
 
       <BusList
         paginatedBuses={paginatedBuses}
@@ -109,7 +108,6 @@ export default function BusClientView() {
         }}
         totalItems={filteredBuses.length}
       />
-
 
       <BusForm
         open={isFormOpen}

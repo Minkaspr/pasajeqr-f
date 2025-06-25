@@ -89,45 +89,47 @@ export default function BalanceRechargeClientView() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      {currentState === "SEARCHING" && (
-        <UserSearchCard
-          dni={dni}
-          onChange={setDni}
-          onSearch={handleSearch}
-          isSearching={searching}
-          error={errors.dni}
-        />
-      )}
+    <div className="min-h-screen">
+      <div className="container mx-auto px-4 py-8 mt-8">
+        <div className="w-full max-w-2xl mx-auto space-y-6">
+          {currentState === "SEARCHING" && (
+            <UserSearchCard
+              dni={dni}
+              onChange={setDni}
+              onSearch={handleSearch}
+              isSearching={searching}
+              error={errors.dni}
+            />
+          )}
 
-      {currentState === "USER_FOUND" && user && (
-        <UserInfoCard
-          user={user}
-          amount={amount}
-          onAmountChange={setAmount}
-          onRecharge={handleRecharge}
-          error={errors.amount}
-          estimatedBalance={getEstimatedBalance()}
-          isRechargeDisabled={!amount || !!errors.amount}
-          onBack={() => setCurrentState("SEARCHING")} // <--- importante
-        />
-      )}
+          {currentState === "USER_FOUND" && user && (
+            <UserInfoCard
+              user={user}
+              amount={amount}
+              onAmountChange={setAmount}
+              onRecharge={handleRecharge}
+              error={errors.amount}
+              estimatedBalance={getEstimatedBalance()}
+              isRechargeDisabled={!amount || !!errors.amount}
+              onBack={() => setCurrentState("SEARCHING")}
+            />
+          )}
 
-
-      {currentState === "RECHARGE_COMPLETED" && user && rechargeDate && (
-        <RechargeReceipt  
-          transactionId={"adasd-1234-5678"} 
-          userName={user.name}
-          userDni={user.dni}
-          userEmail={user.email}
-          amount={lastRechargeAmount.toFixed(2)}
-          previousBalance={previousBalance} // ✅ number
-          newBalance={user.balance}
-          rechargeDate={rechargeDate}
-          onNewRecharge={handleNewRecharge}
-        />
-      )}
-
+          {currentState === "RECHARGE_COMPLETED" && user && rechargeDate && (
+            <RechargeReceipt
+              transactionId={"adasd-1234-5678"}
+              userName={user.name}
+              userDni={user.dni}
+              userEmail={user.email}
+              amount={lastRechargeAmount.toFixed(2)}
+              previousBalance={previousBalance}
+              newBalance={user.balance}
+              rechargeDate={rechargeDate}
+              onNewRecharge={handleNewRecharge}
+            />
+          )}
+        </div>
+      </div>
     </div>
   )
 }

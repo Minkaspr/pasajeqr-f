@@ -47,6 +47,10 @@ import { PassengerMockItem } from "./passenger"
 import { PassengerActions } from "./PassengerActions"
 import { PassengerAdd } from "./PassengerAdd"
 
+import { format } from "date-fns"
+import { es } from "date-fns/locale"
+
+
 const columns: ColumnDef<PassengerMockItem>[] = [
   {
     id: "select",
@@ -75,29 +79,52 @@ const columns: ColumnDef<PassengerMockItem>[] = [
   {
     accessorKey: "dni",
     header: "DNI",
+    cell: ({ row }) => (
+      <span className="font-mono text-muted-foreground text-sm">
+        {row.original.dni}
+      </span>
+    ),
   },
   {
     accessorKey: "firstName",
     header: "Nombre",
+    cell: ({ row }) => (
+      <span className="font-semibold">{row.original.firstName}</span>
+    ),
   },
   {
     accessorKey: "lastName",
     header: "Apellido",
+    cell: ({ row }) => (
+      <span className="text-muted-foreground">{row.original.lastName}</span>
+    ),
   },
   {
     accessorKey: "email",
     header: "Correo",
+    cell: ({ row }) => (
+      <span className="truncate max-w-[200px] block text-muted-foreground text-sm">
+        {row.original.email}
+      </span>
+    ),
   },
   {
     accessorKey: "balance",
     header: "Saldo",
-    cell: ({ row }) => `S/. ${row.original.balance.toFixed(2)}`,
+    cell: ({ row }) => (
+      <span className="font-medium text-primary">
+        S/ {row.original.balance.toFixed(2)}
+      </span>
+    ),
   },
   {
     accessorKey: "status",
     header: "Estado",
     cell: ({ row }) => (
-      <Badge variant="outline" className="px-1.5 text-muted-foreground">
+      <Badge
+        variant={row.original.status ? "default" : "outline"}
+        className={`px-1.5 ${row.original.status ? "bg-green-100 text-green-700" : "text-muted-foreground"}`}
+      >
         {row.original.status ? "Activo" : "Inactivo"}
       </Badge>
     ),
@@ -106,8 +133,14 @@ const columns: ColumnDef<PassengerMockItem>[] = [
     accessorKey: "createdAt",
     header: "Fecha de Registro",
     cell: ({ row }) => {
-      const date = new Date(row.original.createdAt)
-      return date.toLocaleDateString("es-PE")
+      const formatDate = (date: Date) =>
+        format(date, "dd/MM/yyyy", { locale: es })
+
+      return (
+        <span className="text-xs text-muted-foreground">
+          {formatDate(new Date(row.original.createdAt))}
+        </span>
+      )
     },
   },
   {
@@ -115,6 +148,7 @@ const columns: ColumnDef<PassengerMockItem>[] = [
     cell: ({ row }) => <PassengerActions rowData={row.original} />,
   },
 ]
+
 
 interface PassengerTableProps {
   data: PassengerMockItem[]
@@ -192,7 +226,6 @@ export function PassengerTable({
         {Object.keys(rowSelection).length > 0 && (
           <Button
             variant="destructive"
-            size="sm"
             disabled={deletingIds.length > 0}
             onClick={async () => {
               const selectedIds = Object.keys(rowSelection).map((id) => Number(id))
