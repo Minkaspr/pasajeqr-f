@@ -102,6 +102,7 @@ export function FarePagination({
                 {page}
               </Button>
             ))}
+
           </div>
 
           <Button
