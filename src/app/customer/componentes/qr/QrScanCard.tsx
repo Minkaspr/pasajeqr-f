@@ -4,23 +4,16 @@ import { useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Html5QrcodeScanner } from "html5-qrcode"
 
-interface QrScanCardProps {
-  onStartScan: () => void
-}
-
-export function QrScanCard({ onStartScan }: QrScanCardProps) {
+export function QrScanCard() {
   useEffect(() => {
     const scanner = new Html5QrcodeScanner(
       "qr-reader",
-      {
-        fps: 10,
-        qrbox: 250,
-      },
-      false // 👈 Acá sí podés pasar verbose como 3er parámetro del constructor
+      { fps: 10, qrbox: 250 },
+      false
     )
 
     scanner.render(
-      (decodedText: string, decodedResult: any) => {
+      (decodedText: string) => {
         alert(`Código escaneado: ${decodedText}`)
         scanner.clear().catch(console.error)
       },

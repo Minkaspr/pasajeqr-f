@@ -31,21 +31,9 @@ export default function ClientInterface() {
     dni: "12345678",
   })
 
-  const [balance, setBalance] = useState(1500)
-  const [rechargeHistory, setRechargeHistory] = useState<Recharge[]>([
-    { id: 1, amount: 500, date: "2024-06-01", method: "Tarjeta" },
-    { id: 2, amount: 1000, date: "2024-06-10", method: "Efectivo" },
-  ])
-
   const [showScanner, setShowScanner] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
-  const [tempUser, setTempUser] = useState(user.name)
   const [isDarkMode, setIsDarkMode] = useState(false)
-
-  const handleScanResult = (result: string) => {
-    alert(`Resultado del QR: ${result}`)
-    setShowScanner(false)
-  }
 
   const handleSave = (data: { name: string; password: string }) => {
     setUser((prev) => ({
@@ -53,7 +41,6 @@ export default function ClientInterface() {
       name: data.name,
       password: data.password,
     }))
-    setTempUser(data.name)
     setShowSettings(false)
   }
 
@@ -62,9 +49,9 @@ export default function ClientInterface() {
   }
 
   const handleLogout = () => {
-  console.log("Sesión cerrada")
-  window.location.reload()
-}
+    console.log("Sesión cerrada")
+    window.location.reload()
+  }
 
   return (
     <main className="container mx-auto px-4 py-8 max-w-6xl text-foreground space-y-6">
@@ -83,7 +70,6 @@ export default function ClientInterface() {
 
       {!showScanner && !showSettings && (
         <>
-          {/* Cuadro de Bienvenida adaptado */}
           <div className="flex justify-center">
             <Card
               className={`h-fit w-full max-w-md transition-colors duration-300 ${
@@ -115,13 +101,16 @@ export default function ClientInterface() {
           </div>
 
           <div className="flex justify-center">
-            <BalanceCard balance={balance} onScanClick={() => setShowScanner(true)} />
+            <BalanceCard balance={1500} onScanClick={() => setShowScanner(true)} />
           </div>
 
           <div className="flex justify-center w-full">
             <div className="w-full max-w-6xl">
               <RechargeHistoryCard
-                rechargeHistory={rechargeHistory}
+                rechargeHistory={[
+                  { id: 1, amount: 500, date: "2024-06-01", method: "Tarjeta" },
+                  { id: 2, amount: 1000, date: "2024-06-10", method: "Efectivo" },
+                ]}
                 isDarkMode={isDarkMode}
               />
             </div>
@@ -132,19 +121,18 @@ export default function ClientInterface() {
       {showSettings && (
         <div className="max-w-md mx-auto space-y-4">
           <SettingsForm
-          user={user}
-          onSave={handleSave}
-          onLogout={handleLogout}
-          isDarkMode={isDarkMode}
-          setIsDarkMode={setIsDarkMode}
-        />
-
+            user={user}
+            onSave={handleSave}
+            onLogout={handleLogout}
+            isDarkMode={isDarkMode}
+            setIsDarkMode={setIsDarkMode}
+          />
         </div>
       )}
 
       {showScanner && (
         <div className="flex justify-center">
-          <QrScanCard onStartScan={() => setShowScanner(true)} />
+          <QrScanCard />
         </div>
       )}
     </main>
