@@ -4,9 +4,9 @@ import {
   BadgeDollarSign,
   QrCode,
   Wallet,
-  CreditCard,
-  History,
+
   Users,
+  Truck 
 } from "lucide-react"
 
 export const titleNavMain = "Panel de Gestión"
@@ -18,11 +18,6 @@ export const navMainData = [
     icon: Users,
     items: [
       {
-        title: "Administradores",
-        url: "/dashboard/user/admin",
-        description: "Gestión de administradores del sistema",
-      },
-      {
         title: "Pasajeros",
         url: "/dashboard/user/passenger",
         description: "Lista de pasajeros registrados en la plataforma",
@@ -31,6 +26,11 @@ export const navMainData = [
         title: "Conductores",
         url: "/dashboard/user/driver",
         description: "Listado y gestión de conductores",
+      },
+      {
+        title: "Administradores",
+        url: "/dashboard/user/admin",
+        description: "Gestión de administradores del sistema",
       },
     ],
   },
@@ -45,6 +45,12 @@ export const navMainData = [
     url: "/dashboard/stop",
     icon: MapPin,
     description: "Ubicación y administración de paraderos",
+  },
+  {
+    title: "Servicios",
+    url: "/dashboard/service",
+    icon: Truck, 
+    description: "Servicios de transporte",
   },
   {
     title: "Tarifas",
@@ -71,11 +77,16 @@ export const navMainData = [
   },
   {
     title: "Recargas",
-    url: "#",
+    url: "/dashboard/balance-recharge",
     icon: Wallet,
     description: "Gestión de recargas para tarjetas o cuentas",
-  },
-  {
+  }
+]
+
+/**
+ *   CreditCard,
+  History,
+ * {
     title: "Pagos",
     url: "#",
     icon: CreditCard,
@@ -87,4 +98,4 @@ export const navMainData = [
     icon: History,
     description: "Historial de viajes y servicios prestados",
   },
-]
+ */

@@ -46,7 +46,13 @@ import { DriverListItem } from "@/types/driver"
 import { DriverActions } from "./DriverActions"
 import { DriverAdd } from "./DriverAdd"
 
-const columns: ColumnDef<DriverListItem>[] = [
+import { format } from "date-fns"
+import { es } from "date-fns/locale"
+
+const formatDate = (date: Date) =>
+  format(date, "dd/MM/yyyy", { locale: es })
+
+export const columns: ColumnDef<DriverListItem>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -76,38 +82,53 @@ const columns: ColumnDef<DriverListItem>[] = [
   {
     accessorKey: "dni",
     header: "DNI",
+    cell: ({ row }) => (
+      <span className="font-mono text-muted-foreground text-sm">
+        {row.original.dni}
+      </span>
+    ),
   },
   {
     accessorKey: "firstName",
     header: "Nombre",
+    cell: ({ row }) => (
+      <span className="font-medium">{row.original.firstName}</span>
+    ),
   },
   {
     accessorKey: "lastName",
     header: "Apellido",
+    cell: ({ row }) => <span>{row.original.lastName}</span>,
   },
   {
     accessorKey: "email",
     header: "Correo",
+    cell: ({ row }) => (
+      <span className="text-muted-foreground text-sm">
+        {row.original.email}
+      </span>
+    ),
   },
   {
     accessorKey: "status",
     header: "Estado",
     cell: ({ row }) => (
-      <Badge variant="outline" className="px-1.5 text-muted-foreground">
+      <Badge
+        variant={row.original.status ? "default" : "outline"}
+        className={`px-1.5 ${row.original.status ? "bg-green-100 text-green-700" : "text-muted-foreground"}`}
+      >
         {row.original.status ? "Activo" : "Inactivo"}
       </Badge>
     ),
   },
   {
     accessorKey: "createdAt",
-    header: "Fecha de Registro", 
-    cell: ({ row }) => {
-      const date = new Date(row.original.createdAt);
-      const day = date.getDate().toString().padStart(2, '0');
-      const month = (date.getMonth() + 1).toString().padStart(2, '0'); 
-      const year = date.getFullYear();
-      return `${day}/${month}/${year}`;
-    },
+    header: "Fecha de Registro",
+    cell: ({ row }) => (
+      <span className="text-xs text-muted-foreground">
+        {formatDate(new Date(row.original.createdAt))}
+      </span>
+    ),
   },
   {
     id: "actions",
@@ -199,13 +220,12 @@ export function DriverTable({
   })
 
   return (
-    <div className="flex w-full flex-col gap-6 px-4 lg:px-6">
+    <div className="flex w-full flex-col gap-6 lg:px-4">
       <div className="flex items-center justify-end gap-2">
         {Object.keys(rowSelection).length > 0 && (
           
           <Button
             variant="destructive"
-            size="sm"
             disabled={deletingIds.length > 0}
             onClick={async () => {
               const selectedIds = Object.keys(rowSelection).map(id => Number(id));

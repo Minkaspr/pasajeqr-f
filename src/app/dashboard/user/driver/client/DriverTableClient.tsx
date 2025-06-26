@@ -55,16 +55,18 @@ export function DriverTableClient() {
   };
 
   return (
-    <DriverRefreshProvider value={fetchData}>
-      <DriverTable
-        data={data}
-        totalItems={totalItems}
-        pageIndex={pageIndex}
-        pageSize={pageSize}
-        onPaginationChange={handlePaginationChange}
-        onDeleteSelected={handleDeleteSelected}
-        deletingIds={deletingIds}
-      />
-    </DriverRefreshProvider>
+    <div className="@container px-2 sm:px-4 md:px-6">
+      <DriverRefreshProvider value={fetchData}>
+        <DriverTable
+          data={data}
+          totalItems={totalItems}
+          pageIndex={pageIndex}
+          pageSize={pageSize}
+          onPaginationChange={handlePaginationChange}
+          onDeleteSelected={handleDeleteSelected}
+          deletingIds={deletingIds}
+        />
+      </DriverRefreshProvider>
+    </div>
   );
 }
