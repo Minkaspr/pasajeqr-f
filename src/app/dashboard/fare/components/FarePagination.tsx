@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/select"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
+import { useMediaQuery } from "@/hooks/useMediaQuery"
+
 interface FarePaginationProps {
   currentPage: number
   totalPages: number
@@ -30,20 +32,21 @@ export function FarePagination({
   const from = (currentPage - 1) * itemsPerPage + 1
   const to = Math.min(currentPage * itemsPerPage, totalItems)
 
+  const isVerySmallScreen = useMediaQuery("(max-width: 400px)")
+  const isSmallScreen = useMediaQuery("(max-width: 640px)")
+  const maxVisiblePages = isSmallScreen ? 3 : 5
+
   const getVisiblePages = (): number[] => {
-    if (totalPages <= 5) {
+    if (totalPages <= maxVisiblePages) {
       return Array.from({ length: totalPages }, (_, i) => i + 1)
     }
 
-    let start = Math.max(1, currentPage - 2)
-    let end = Math.min(totalPages, currentPage + 2)
+    let start = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
+    let end = start + maxVisiblePages - 1
 
-    if (start <= 2) {
-      start = 1
-      end = 5
-    } else if (end >= totalPages - 1) {
-      start = totalPages - 4
+    if (end > totalPages) {
       end = totalPages
+      start = end - maxVisiblePages + 1
     }
 
     return Array.from({ length: end - start + 1 }, (_, i) => start + i)
@@ -57,23 +60,25 @@ export function FarePagination({
       </div>
 
       {/* Selector y controles de paginación */}
-      <div className="flex flex-wrap items-center justify-between gap-2 w-full">
+      <div className="flex flex-wrap items-center justify-end @xs:justify-between gap-2 w-full">
         {/* Selector de cantidad */}
-        <Select
-          value={itemsPerPage.toString()}
-          onValueChange={(v) => setItemsPerPage(Number(v))}
-        >
-          <SelectTrigger className="w-[120px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {[5, 10, 20, 50].map((n) => (
-              <SelectItem key={n} value={n.toString()}>
-                Mostrar {n}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {!isVerySmallScreen && (
+          <Select
+            value={itemsPerPage.toString()}
+            onValueChange={(v) => setItemsPerPage(Number(v))}
+          >
+            <SelectTrigger className="w-[120px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[5, 10, 20, 50].map((n) => (
+                <SelectItem key={n} value={n.toString()}>
+                  Mostrar {n}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
 
         {/* Controles de paginación */}
         <div className="flex items-center gap-2 flex-wrap">
@@ -97,6 +102,7 @@ export function FarePagination({
                 {page}
               </Button>
             ))}
+
           </div>
 
           <Button

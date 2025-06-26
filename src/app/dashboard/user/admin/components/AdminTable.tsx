@@ -205,7 +205,7 @@ export function AdminTable({
   })
 
   return (
-    <div className="flex w-full flex-col gap-6 px-4 lg:px-6">
+    <div className="flex w-full flex-col gap-6 lg:px-4">
       <div className="flex items-center justify-end gap-2">
         {Object.keys(rowSelection).length > 0 && (
           <Button

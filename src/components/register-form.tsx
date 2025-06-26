@@ -61,8 +61,8 @@ export default function RegisterCard({
     
     const newErrors = {
       firstName:
-        firstName.trim().length < 6
-        ? "Debe tener al menos 6 caracteres"
+        firstName.trim().length < 3
+        ? "Debe tener al menos 3 caracteres"
         : !nameRegex.test(firstName.trim())
         ? "Solo se permiten letras"
         : firstName !== firstName.trim()
@@ -155,7 +155,7 @@ export default function RegisterCard({
             <div className="grid gap-6">
               {/* Nombre */}
               <div className="grid gap-2">
-                <Label htmlFor="firstName">Nombre</Label>
+                <Label htmlFor="firstName">Nombre(s)</Label>
                 <Input
                   id="firstName"
                   type="text"
@@ -179,7 +179,7 @@ export default function RegisterCard({
 
               {/* Apellido */}
               <div className="grid gap-2">
-                <Label htmlFor="lastName">Apellido</Label>
+                <Label htmlFor="lastName">Apellidos</Label>
                 <Input
                   id="lastName"
                   type="text"

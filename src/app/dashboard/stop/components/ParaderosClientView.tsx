@@ -54,7 +54,7 @@ export function ParaderosClientView() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="@container space-y-4">
       <StopControls
         search={search}
         setSearch={setSearch}

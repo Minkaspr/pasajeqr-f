@@ -3,7 +3,7 @@ import { lettersField, digitsField, passwordField, alphanumericCodeField } from 
 import { DriverStatus } from "@/types/driver";
 
 const baseDriverSchema = z.object({
-  firstName: lettersField("El nombre", { min: 6, max: 50 }),
+  firstName: lettersField("El nombre", { min: 3, max: 50 }),
   lastName: lettersField("El apellido", { min: 6, max: 50 }),
   email: z
     .string()
