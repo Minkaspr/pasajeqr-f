@@ -10,30 +10,42 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog"
-
 import { toast } from "sonner"
-import { AdminListItem } from "./admin"
+import { useState } from "react"
+
+import { AdminUserItemRS } from "../types/admin"
 import { useAdminRefresh } from "./AdminRefreshContext"
-import { toggleAdminStatus } from "./mockAdmins"
+import { changeAdminStatus } from "../lib/api"
 
 interface AdminToggleStatusProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  admin: AdminListItem
+  admin: AdminUserItemRS
 }
 
 export function AdminToggleStatus({ open, onOpenChange, admin }: AdminToggleStatusProps) {
   const refresh = useAdminRefresh()
+  const [loading, setLoading] = useState(false)
 
   const handleConfirm = async () => {
+    setLoading(true)
     try {
-      toggleAdminStatus(admin.id)
-      toast.success(admin.status ? "Cuenta desactivada" : "Cuenta activada")
+      // Invertimos el estado actual
+      const newStatus = !admin.status
+      await changeAdminStatus(admin.id, { active: newStatus })
+
+      toast.success(
+        newStatus
+          ? "Cuenta activada correctamente"
+          : "Cuenta desactivada correctamente"
+      )
       refresh()
       onOpenChange(false)
-    } catch (error) {
-      console.error("Error al cambiar el estado del admin:", error)
+    } catch (err: unknown) {
+      console.error("Error al cambiar el estado del admin:", err)
       toast.error("Error al cambiar el estado")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -50,8 +62,13 @@ export function AdminToggleStatus({ open, onOpenChange, admin }: AdminToggleStat
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={handleConfirm}>Confirmar</AlertDialogAction>
+          <AlertDialogCancel disabled={loading}>Cancelar</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleConfirm}
+            disabled={loading}
+          >
+            {loading ? "Procesando..." : "Confirmar"}
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

@@ -1,23 +1,13 @@
-"use client"
+'use client'
 
-import { createContext, useContext, useState, ReactNode } from "react"
+import { createContext, useContext } from 'react'
 
-type AdminRefreshContextType = () => void
+type RefreshFunction = (page?: number, size?: number) => Promise<void>
 
-const AdminRefreshContext = createContext<AdminRefreshContextType>(() => {})
+const AdminRefreshContext = createContext<RefreshFunction>(() => {
+  throw new Error("AdminRefreshContext usado fuera del proveedor")
+})
 
-export function useAdminRefresh() {
-  return useContext(AdminRefreshContext)
-}
+export const AdminRefreshProvider = AdminRefreshContext.Provider
 
-export function AdminRefreshProvider({ children }: { children: ReactNode }) {
-  const [, setVersion] = useState(0)
-
-  const refresh = () => setVersion((v) => v + 1)
-
-  return (
-    <AdminRefreshContext.Provider value={refresh}>
-      {children}
-    </AdminRefreshContext.Provider>
-  )
-}
+export const useAdminRefresh = () => useContext(AdminRefreshContext)

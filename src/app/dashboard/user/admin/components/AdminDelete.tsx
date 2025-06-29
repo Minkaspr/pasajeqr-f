@@ -10,30 +10,39 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog"
-
 import { toast } from "sonner"
-import { AdminListItem } from "./admin"
-import { deleteAdmin } from "./mockAdmins"
+import { useState } from "react"
+
 import { useAdminRefresh } from "./AdminRefreshContext"
+import { AdminUserItemRS } from "../types/admin"
+import { deleteAdmin } from "../lib/api"  
 
 interface AdminDeleteProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  admin: AdminListItem
+  admin: AdminUserItemRS
 }
 
 export function AdminDelete({ open, onOpenChange, admin }: AdminDeleteProps) {
   const refresh = useAdminRefresh()
+  const [loading, setLoading] = useState(false)
 
   const handleDelete = async () => {
+    setLoading(true)
     try {
-      deleteAdmin(admin.id)
-      toast.success(`Administrador ${admin.firstName} eliminado correctamente`)
+      await deleteAdmin(admin.id)     
+      toast.success(
+        `Administrador ${admin.firstName} eliminado correctamente`
+      )
       refresh()
       onOpenChange(false)
-    } catch (error) {
-      console.error("Error al eliminar administrador:", error)
-      toast.error("Error al eliminar administrador")
+    } catch (err: unknown) {
+      console.error("Error al eliminar administrador:", err)
+      toast.error(
+        err instanceof Error ? err.message : "Error al eliminar administrador"
+      )
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -43,13 +52,17 @@ export function AdminDelete({ open, onOpenChange, admin }: AdminDeleteProps) {
         <AlertDialogHeader>
           <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
           <AlertDialogDescription>
-            Esta acción eliminará al administrador <strong>{admin.firstName} {admin.lastName}</strong> de forma permanente.
+            Esta acción eliminará al administrador{" "}
+            <strong>
+              {admin.firstName} {admin.lastName}
+            </strong>{" "}
+            de forma permanente.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDelete}>
-            Eliminar
+          <AlertDialogCancel disabled={loading}>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={handleDelete} disabled={loading}>
+            {loading ? "Eliminando..." : "Eliminar"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
