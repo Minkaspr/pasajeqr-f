@@ -9,14 +9,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-import { AdminListItem } from "./admin"
 import { AdminView } from "./AdminView"
 import { AdminEdit } from "./AdminEdit"
 import { AdminDelete } from "./AdminDelete"
 import { AdminToggleStatus } from "./AdminToggleStatus"
+import { AdminUserItemRS } from "../types/admin"
 
 interface RowActionsProps {
-  rowData: AdminListItem
+  rowData: AdminUserItemRS
 }
 
 export function AdminActions({ rowData }: RowActionsProps) {
@@ -61,25 +61,16 @@ export function AdminActions({ rowData }: RowActionsProps) {
       </DropdownMenu>
 
       <AdminView
+        adminId={rowData.id}
         open={openView}
         onOpenChange={setOpenView}
-        admin={{
-          ...rowData,
-          birthDate: "1990-01-01", // o el valor que desees mockear
-          updatedAt: new Date().toISOString(),
-        }}
       />
 
       <AdminEdit
+        adminId={rowData.id}
         open={openEdit}
         onOpenChange={setOpenEdit}
-        admin={{
-          ...rowData,
-          birthDate: "1990-01-01",
-          updatedAt: new Date().toISOString(),
-        }}
       />
-
 
       <AdminToggleStatus open={openToggleStatus} onOpenChange={setOpenToggleStatus} admin={rowData} />
       <AdminDelete open={openDelete} onOpenChange={setOpenDelete} admin={rowData} />

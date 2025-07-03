@@ -10,30 +10,35 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog"
-
 import { toast } from "sonner"
-import { PassengerMockItem } from "./passenger"
-import { deletePassenger } from "./mockPassengers"
+import { useState } from "react"
+
 import { usePassengerRefresh } from "./PassengerRefreshContext"
+import { PassengerUserItemRS } from "../types/passenger"
+import { deletePassenger } from "../lib/api"
 
 interface PassengerDeleteProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  passenger: PassengerMockItem
+  passenger: PassengerUserItemRS
 }
 
 export function PassengerDelete({ open, onOpenChange, passenger }: PassengerDeleteProps) {
   const refresh = usePassengerRefresh()
+  const [loading, setLoading] = useState(false)
 
   const handleDelete = async () => {
+    setLoading(true)  
     try {
-      deletePassenger(passenger.id)
+      await deletePassenger(passenger.id)
       toast.success(`Pasajero ${passenger.firstName} eliminado correctamente`)
       refresh()
       onOpenChange(false)
     } catch (error) {
       console.error("Error al eliminar pasajero:", error)
       toast.error("Error al eliminar pasajero")
+    }  finally {
+      setLoading(false)
     }
   }
 
@@ -48,9 +53,9 @@ export function PassengerDelete({ open, onOpenChange, passenger }: PassengerDele
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDelete}>
-            Eliminar
+          <AlertDialogCancel disabled={loading}>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={handleDelete} disabled={loading}>
+            {loading ? "Eliminando..." : "Eliminar"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

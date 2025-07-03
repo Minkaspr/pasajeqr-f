@@ -43,7 +43,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-import { AdminListItem } from "./admin"
+import { AdminUserItemRS } from "../types/admin"
 import { AdminActions } from "./AdminActions"
 import { AdminAdd } from "./AdminAdd"
 
@@ -53,7 +53,7 @@ import { es } from "date-fns/locale"
 const formatDate = (date: Date) =>
   format(date, "dd/MM/yyyy", { locale: es })
 
-export const columns: ColumnDef<AdminListItem>[] = [
+export const columns: ColumnDef<AdminUserItemRS>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -134,7 +134,7 @@ export const columns: ColumnDef<AdminListItem>[] = [
 ]
 
 interface AdminTableProps {
-  data: AdminListItem[]
+  data: AdminUserItemRS []
   totalItems: number
   pageIndex: number
   pageSize: number

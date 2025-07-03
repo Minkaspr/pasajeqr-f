@@ -5,6 +5,8 @@ import { UserSearchCard } from "./UserSearchCard"
 import { UserInfoCard } from "./UserInfoCard"
 import { RechargeReceipt } from "./RechargeReceipt"
 
+import { getPassengerByDni, rechargePassengerBalance } from "../lib/api"
+
 export interface UserData {
   id: string
   name: string
@@ -33,27 +35,47 @@ export default function BalanceRechargeClientView() {
       return
     }
 
-    setSearching(true)
+    if (!/^\d{8}$/.test(dni)) {
+      setErrors((prev) => ({ ...prev, dni: "El DNI debe tener 8 dígitos." }));
+      return;
+    }
 
-    setTimeout(() => {
-      if (dni === "12345678") {
-        const found = {
-          id: "u1",
-          name: "Carlos Ramirez",
-          email: "carlos.ramirez@example.com",
-          dni: "12345678",
-          balance: 150.0,
-        }
-        setUser(found)
-        setCurrentState("USER_FOUND")
-      } else {
-        setErrors((prev) => ({ ...prev, dni: "Usuario no encontrado." }))
+    setSearching(true)
+    try {
+      const response = await getPassengerByDni(dni);
+      const passenger = response.data;
+
+      if (!passenger) {
+        console.warn("Respuesta sin datos: ", response);
+        setErrors((prev) => ({ ...prev, dni: "Usuario no encontrado o inválido." }));
+        return;
       }
-      setSearching(false)
-    }, 800)
+
+      setUser({
+        id: String(passenger.id),
+        name: `${passenger.firstName} ${passenger.lastName}`,
+        email: passenger.email,
+        dni: passenger.dni,
+        balance: passenger.balance,
+      });
+
+      setCurrentState("USER_FOUND");
+    } catch (error: unknown) {
+      const err = error as {
+        message?: string;
+        errors?: { error?: string };
+      };
+
+      const message = err?.errors?.error || err?.message || "Ocurrió un error al buscar el pasajero.";
+
+      setErrors((prev) => ({ ...prev, dni: message }));
+      console.error("❌ Error detallado:", error);
+    } finally {
+      setSearching(false);
+    }
   }
 
-  const handleRecharge = () => {
+  const handleRecharge = async () => {
     setErrors((prev) => ({ ...prev, amount: undefined }))
 
     const numericAmount = parseFloat(amount)
@@ -61,15 +83,37 @@ export default function BalanceRechargeClientView() {
       setErrors((prev) => ({ ...prev, amount: "Ingresa un monto válido mayor a 0." }))
       return
     }
+    if (!user) return;
+    try {
+      // Llama al backend para hacer la recarga
+      const response = await rechargePassengerBalance(Number(user.id), {
+        amount: numericAmount,
+        description: "Recarga realizada en sucursal"
+      });
 
-    if (user) {
-      setPreviousBalance(user.balance)
-      const updatedUser = { ...user, balance: user.balance + numericAmount }
-      setUser(updatedUser)
-      setLastRechargeAmount(numericAmount)
-      setRechargeDate(new Date())
-      setAmount("")
-      setCurrentState("RECHARGE_COMPLETED")
+      // Extrae datos de la transacción retornada
+      const transaction = response.data;
+
+      if (!transaction) {
+        throw new Error("No se recibió la información de la transacción.");
+      }
+
+      // Actualiza el estado con los datos nuevos
+      setPreviousBalance(user.balance);
+      const updatedUser = { ...user, balance: transaction.amount + user.balance };
+      setUser(updatedUser);
+      setLastRechargeAmount(transaction.amount);
+      setRechargeDate(new Date(transaction.transactionDate));
+      setAmount("");
+      setCurrentState("RECHARGE_COMPLETED");
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error("❌ Error al recargar saldo:", error.message);
+        setErrors((prev) => ({ ...prev, amount: error.message }));
+      } else {
+        console.error("❌ Error inesperado:", error);
+        setErrors((prev) => ({ ...prev, amount: "Error inesperado al recargar saldo." }));
+      }
     }
   }
 

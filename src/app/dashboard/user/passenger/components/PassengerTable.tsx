@@ -43,7 +43,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-import { PassengerMockItem } from "./passenger"
+import { PassengerUserItemRS } from "../types/passenger"
 import { PassengerActions } from "./PassengerActions"
 import { PassengerAdd } from "./PassengerAdd"
 
@@ -51,7 +51,7 @@ import { format } from "date-fns"
 import { es } from "date-fns/locale"
 
 
-const columns: ColumnDef<PassengerMockItem>[] = [
+const columns: ColumnDef<PassengerUserItemRS>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -149,9 +149,8 @@ const columns: ColumnDef<PassengerMockItem>[] = [
   },
 ]
 
-
 interface PassengerTableProps {
-  data: PassengerMockItem[]
+  data: PassengerUserItemRS[]
   totalItems: number
   pageIndex: number
   pageSize: number
