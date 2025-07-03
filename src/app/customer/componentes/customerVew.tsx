@@ -10,13 +10,15 @@ type View = "dashboard" | "settings" | "scanner"
 export default function CustomerVew() {
   const [currentView, setCurrentView] = useState<View>("dashboard")
 
+  const [user, setUser] = useState({ firstName: "Nombre", lastName: "Apellido", balance: 25.5 })
+
   const handleConfigClick = () => setCurrentView("settings")
   const handleQrClick = () => setCurrentView("scanner")
   const handleBackClick = () => setCurrentView("dashboard")
 
   const handleUpdateProfile = (data: { firstName: string; lastName: string }) => {
-    console.log("Updating profile:", data)
-    // Aquí implementarías la lógica para actualizar el perfil
+    setUser({ ...user, ...data }) // Mantiene balance actual
+    setCurrentView("dashboard")
   }
 
   const handleUpdatePassword = (data: { currentPassword: string; newPassword: string; confirmPassword: string }) => {
@@ -46,6 +48,15 @@ export default function CustomerVew() {
     case "scanner":
       return <QrScanner onBackClick={handleBackClick} onScanSuccess={handleScanSuccess} onScanError={handleScanError} />
     default:
-      return <PassengerDashboard onConfigClick={handleConfigClick} onQrClick={handleQrClick} />
+      return (
+        <PassengerDashboard
+          user={{
+            name: `${user.firstName} ${user.lastName}`,
+            balance: user.balance,
+          }}
+          onConfigClick={handleConfigClick}
+          onQrClick={handleQrClick}
+        />
+      )
   }
 }
