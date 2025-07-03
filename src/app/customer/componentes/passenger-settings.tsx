@@ -10,6 +10,9 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowLeft, User, Lock, Settings, Mail, LogOut } from "lucide-react"
 
+import { useRouter } from "next/navigation"
+
+
 interface PassengerSettingsProps {
   user?: {
     firstName: string
@@ -42,6 +45,8 @@ export default function PassengerSettings({
 
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false)
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
+
+  const router = useRouter()
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -79,6 +84,7 @@ export default function PassengerSettings({
 
   const handleLogout = () => {
     onLogout?.()
+    router.push("/")
   }
 
   return (
@@ -266,11 +272,10 @@ export default function PassengerSettings({
             <div className="mt-6 pt-6 border-t border-gray-200">
               <Button
                 onClick={handleLogout}
-                variant="outline"
-                className="w-full sm:w-auto text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 bg-transparent"
-                size="lg"
+                variant="destructive"
+                className="w-full sm:w-auto flex items-center gap-2"
               >
-                <LogOut className="h-4 w-4 mr-2" />
+                <LogOut className="h-4 w-4" />
                 Cerrar Sesión
               </Button>
             </div>
