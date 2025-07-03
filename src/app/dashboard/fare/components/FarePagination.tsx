@@ -15,19 +15,19 @@ import { useMediaQuery } from "@/hooks/useMediaQuery"
 interface FarePaginationProps {
   currentPage: number
   totalPages: number
+  totalItems: number
   onPageChange: (page: number) => void
   itemsPerPage: number
   setItemsPerPage: (value: number) => void
-  totalItems: number
 }
 
 export function FarePagination({
   currentPage,
   totalPages,
+  totalItems,
   onPageChange,
   itemsPerPage,
-  setItemsPerPage,
-  totalItems,
+  setItemsPerPage
 }: FarePaginationProps) {
   const from = (currentPage - 1) * itemsPerPage + 1
   const to = Math.min(currentPage * itemsPerPage, totalItems)

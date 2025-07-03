@@ -1,119 +1,105 @@
 "use client"
 
-import { useMemo, useState } from "react"
-import { Bus } from "@/types/bus"
+import { useCallback, useEffect, useState } from "react"
 import { BusList } from "./BusList"
 import { BusPagination } from "./BusPagination"
 import { BusControls } from "./BusControls"
 import { BusForm } from "./BusForm"
-import type { BusFormValues } from "./BusForm"
-
-const initialMockBuses: Bus[] = Array.from({ length: 20 }, (_, i) => ({
-  id: crypto.randomUUID(),
-  plate: `BUS-${(100 + i).toString()}`,
-  model: ["Mercedes Sprinter", "Hyundai County", "Volvo B8R", "Iveco Daily", "Scania F94"][i % 5],
-  capacity: [20, 34, 45, 28, 40][i % 5],
-  status: ["OPERATIONAL", "IN_SERVICE", "UNDER_MAINTENANCE", "OUT_OF_SERVICE"][i % 4] as Bus["status"],
-  createdAt: new Date(Date.now() - i * 86400000),
-}))
+import { toast } from "sonner"
+import { getBusesPaged, deleteBus } from "../lib/api"
+import { BusItemRS } from "../types/bus"
 
 export default function BusClientView() {
-  const [buses, setBuses] = useState<Bus[]>(initialMockBuses)
+  const [buses, setBuses] = useState<BusItemRS[]>([])
+  const [search, setSearch] = useState("")
+  const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(5)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalItems, setTotalItems] = useState(0)
+  const [editingBus, setEditingBus] = useState<BusItemRS | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
-  const [editingBus, setEditingBus] = useState<Bus | null>(null)
 
-  const [searchTerm, setSearchTerm] = useState("")
+  const loadBuses = useCallback(async () => {
+    try {
+      const res = await getBusesPaged(currentPage - 1, itemsPerPage, searchQuery)
+      setBuses(res.data?.buses ?? [])
+      setTotalPages(res.data?.totalPages ?? 1)
+      setTotalItems(res.data?.totalItems ?? 0)
+    } catch (error) {
+      console.error("❌ Error al cargar buses:", error)
+      toast.error("Error al cargar buses")
+    }
+  }, [currentPage, itemsPerPage, searchQuery])
 
-  const filteredBuses = useMemo(() => {
-    const term = searchTerm.toLowerCase()
-    return buses.filter(
-      (bus) =>
-        bus.plate.toLowerCase().includes(term) ||
-        bus.model.toLowerCase().includes(term)
-    )
-  }, [searchTerm, buses])
-
-  const totalPages = Math.ceil(filteredBuses.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedBuses = filteredBuses.slice(startIndex, startIndex + itemsPerPage)
+  useEffect(() => {
+    loadBuses()
+  }, [loadBuses])
 
   const handleCreate = () => {
     setEditingBus(null)
     setIsFormOpen(true)
   }
 
-  const handleEdit = (bus: Bus) => {
+  const handleEdit = (bus: BusItemRS) => {
     setEditingBus(bus)
     setIsFormOpen(true)
   }
 
-  const handleSubmit = (data: BusFormValues) => {
-    if (editingBus) {
-      const updatedBus: Bus = {
-        ...editingBus,
-        ...data,
-      }
-      setBuses((prev) => prev.map((b) => (b.id === updatedBus.id ? updatedBus : b)))
-    } else {
-      const newBus: Bus = {
-        id: crypto.randomUUID(),
-        createdAt: new Date(),
-        ...data,
-      }
-      setBuses((prev) => [newBus, ...prev])
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteBus(id)
+      toast.success("Bus eliminado correctamente")
+      loadBuses()
+    } catch (error) {
+      console.error("❌ Error al eliminar bus:", error)
+      toast.error("Error al eliminar bus")
     }
-
-    setIsFormOpen(false)
-    setEditingBus(null)
   }
-
-  const handleDelete = (bus: Bus) => {
-    setBuses((prev) => prev.filter((b) => b.id !== bus.id))
-  }
-
-  const formatDate = (date: Date) =>
-    new Intl.DateTimeFormat("es-PE", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    }).format(date)
 
   return (
     <div className="@container w-full max-w-5xl mx-auto px-4 py-6 space-y-4">
       <BusControls
-        onSearch={(value) => {
-          setSearchTerm(value)
+        search={search}
+        setSearch={setSearch}
+        onSearch={() => {
+          setSearchQuery(search)
           setCurrentPage(1)
         }}
         onCreate={handleCreate}
       />
 
       <BusList
-        paginatedBuses={paginatedBuses}
-        startIndex={startIndex}
-        handleEdit={handleEdit}
-        handleDelete={handleDelete}
-        formatDate={formatDate}
+        buses={buses}
+        onEdit={handleEdit}
+        onDelete={(bus) => handleDelete(bus.id)}
+        startIndex={(currentPage - 1) * itemsPerPage}
       />
 
       <BusPagination
         currentPage={currentPage}
         totalPages={totalPages}
-        onPageChange={setCurrentPage}
+        totalItems={totalItems}
         itemsPerPage={itemsPerPage}
-        onItemsPerPageChange={(value) => {
-          setItemsPerPage(value)
+        setItemsPerPage={(qty) => {
+          setItemsPerPage(qty)
           setCurrentPage(1)
         }}
-        totalItems={filteredBuses.length}
+        onPageChange={setCurrentPage}
       />
 
       <BusForm
-        open={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        onSubmit={handleSubmit}
-        editingBus={editingBus}
+        busId={editingBus?.id ?? null}
+        isOpen={isFormOpen}
+        onClose={() => {
+          setIsFormOpen(false)
+          setEditingBus(null)
+        }}
+        onSuccess={() => {
+          loadBuses()
+          setIsFormOpen(false)
+          setEditingBus(null)
+        }}
       />
     </div>
   )

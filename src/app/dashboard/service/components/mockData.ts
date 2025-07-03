@@ -1,4 +1,4 @@
-import { ServiceEntity, ServiceStatus } from "./types"
+import { ServiceEntity, ServiceStatus } from "../types/status-config"
 
 export function generateMockServices(): ServiceEntity[] {
   const buses = ["ABC-123", "DEF-456", "GHI-789", "JKL-012", "MNO-345"]

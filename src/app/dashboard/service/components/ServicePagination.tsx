@@ -15,19 +15,19 @@ import { useMediaQuery } from "@/hooks/useMediaQuery"
 interface ServicePaginationProps {
   currentPage: number
   totalPages: number
+  totalItems: number
   onPageChange: (page: number) => void
   itemsPerPage: number
-  onItemsPerPageChange: (value: number) => void
-  totalItems: number
+  setItemsPerPage: (value: number) => void
 }
 
 export function ServicePagination({
   currentPage,
   totalPages,
+  totalItems,
   onPageChange,
   itemsPerPage,
-  onItemsPerPageChange,
-  totalItems,
+  setItemsPerPage,
 }: ServicePaginationProps) {
   const from = (currentPage - 1) * itemsPerPage + 1
   const to = Math.min(currentPage * itemsPerPage, totalItems)
@@ -53,20 +53,19 @@ export function ServicePagination({
   }
 
   return (
-
     <div className="flex flex-col @sm:flex-row @sm:items-center @sm:justify-between gap-4 mt-6">
-      {/* Texto de rango visible solo desde @lg */}
+      {/* Texto de rango visible solo desde @xl */}
       <div className="shrink-0 text-sm text-muted-foreground hidden @xl:block">
-        Mostrando <strong>{from}</strong>–<strong>{to}</strong> de <strong>{totalItems}</strong> buses
+        Mostrando <strong>{from}</strong>–<strong>{to}</strong> de <strong>{totalItems}</strong> servicios
       </div>
 
       {/* Selector y controles de paginación */}
       <div className="flex flex-wrap items-center justify-end @xs:justify-between gap-2 w-full">
         {/* Selector de cantidad */}
-          {!isVerySmallScreen && (
+        {!isVerySmallScreen && (
           <Select
             value={itemsPerPage.toString()}
-            onValueChange={(value) => onItemsPerPageChange(Number(value))}
+            onValueChange={(v) => setItemsPerPage(Number(v))}
           >
             <SelectTrigger className="w-[120px]">
               <SelectValue />
@@ -103,7 +102,6 @@ export function ServicePagination({
                 {page}
               </Button>
             ))}
-
           </div>
 
           <Button

@@ -1,119 +1,103 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
-import { ServiceEntity, ServiceStatus } from "./types"
-import { generateMockServices } from "./mockData"
-import { ServiceTable } from "./ServiceTable"
-import { ServiceFormDialog, ServiceFormValues } from "./ServiceFormDialog"
+import { ServiceList } from "./ServiceList"
+import { ServiceDialog } from "./ServiceDialog"
 import { ServicePagination } from "./ServicePagination"
 import { ServiceControls } from "./ServiceControls"
+import { toast } from "sonner"
+import { getTripsPaged, deleteTrip } from "../lib/api"
+import { TripItemRS } from "../types/service"
 
 export default function ServiceClientView() {
-  const [services, setServices] = useState<ServiceEntity[]>([])
+   const [services, setServices] = useState<TripItemRS[]>([])
+  const [search, setSearch] = useState("")
+  const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(10)
-  const [isFormOpen, setIsFormOpen] = useState(false)
-  const [editingService, setEditingService] = useState<ServiceEntity | null>(null)
+  const [itemsPerPage, setItemsPerPage] = useState(5)
+  const [totalPages, setTotalPages] = useState(1)
+  const [editingServiceId, setEditingServiceId] = useState<number | null>(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
 
-  const [searchTerm, setSearchTerm] = useState("")
-
-  // ✅ Generar mock data en cliente
-  useEffect(() => {
-    setServices(generateMockServices())
-  }, [])
-
-  // 🔍 Filtro solo por código
-  const filteredServices = useMemo(() => {
-    return services.filter((s) =>
-      s.serviceCode.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  }, [services, searchTerm])
-
-  const totalPages = Math.ceil(filteredServices.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedServices = filteredServices.slice(startIndex, startIndex + itemsPerPage)
+  const loadTrips = useCallback(async () => {
+    try {
+      const res = await getTripsPaged(currentPage - 1, itemsPerPage, searchQuery)
+      setServices(res.data?.services ?? [])
+      setTotalPages(res.data?.totalPages ?? 1)
+    } catch (error) {
+      console.error("❌ Error al cargar servicios:", error)
+      toast.error("Error al cargar servicios")
+    }
+  }, [currentPage, itemsPerPage, searchQuery])
 
   useEffect(() => {
-    setCurrentPage(1)
-  }, [searchTerm, itemsPerPage])
-
-  const handleEdit = (service: ServiceEntity) => {
-    setEditingService(service)
-    setIsFormOpen(true)
-  }
+    loadTrips()
+  }, [loadTrips])
 
   const handleCreate = () => {
-    setEditingService(null)
-    setIsFormOpen(true)
+    setEditingServiceId(null)
+    setIsDialogOpen(true)
   }
 
-  const handleSubmit = (data: ServiceFormValues) => {
-    const newService: ServiceEntity = {
-      ...editingService,
-      ...data,
-      id: editingService?.id ?? String(Date.now()),
-      createdAt: editingService?.createdAt ?? new Date(),
-      departureTime: new Date(`${data.departureDate}T${data.departureTime}`),
-      arrivalTime:
-        data.arrivalDate && data.arrivalTime
-          ? new Date(`${data.arrivalDate}T${data.arrivalTime}`)
-          : null,
-      status: editingService?.status ?? ServiceStatus.SCHEDULED, // o lo que desees por defecto
-    }
-
-    if (editingService) {
-      setServices((prev) => prev.map((s) => (s.id === newService.id ? newService : s)))
-    } else {
-      setServices((prev) => [newService, ...prev])
-    }
-
-    setIsFormOpen(false)
-    setEditingService(null)
+  const handleEdit = (service: TripItemRS) => {
+    setEditingServiceId(service.id)
+    setIsDialogOpen(true)
   }
 
-  const handleDelete = (service: ServiceEntity) => {
-    setServices((prev) => prev.filter((s) => s.id !== service.id))
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteTrip(id)
+      toast.success("Servicio eliminado correctamente")
+      loadTrips()
+    } catch (error) {
+      console.error("❌ Error al eliminar servicio:", error)
+      toast.error("Error al eliminar servicio")
+    }
   }
 
   return (
     <div className="@container w-full max-w-5xl mx-auto px-4 py-6 space-y-4">
-      {/* Controles */}
       <ServiceControls
-        onSearch={(value) => {
-          setSearchTerm(value)
+        search={search}
+        setSearch={setSearch}
+        onSearch={() => {
+          setSearchQuery(search)
           setCurrentPage(1)
         }}
         onCreate={handleCreate}
       />
 
-      {/* Tabla */}
-      <ServiceTable
-        services={paginatedServices}
+      <ServiceList
+        services={services}
         onEdit={handleEdit}
-        onDelete={handleDelete}
-        startIndex={startIndex}
+        onDelete={(service) => handleDelete(service.id)}
       />
 
-      {/* Nueva paginación reutilizable */}
       <ServicePagination
         currentPage={currentPage}
         totalPages={totalPages}
+        totalItems={services.length}
         onPageChange={setCurrentPage}
         itemsPerPage={itemsPerPage}
-        onItemsPerPageChange={(value) => {
-          setItemsPerPage(value)
+        setItemsPerPage={(qty) => {
+          setItemsPerPage(qty)
           setCurrentPage(1)
         }}
-        totalItems={filteredServices.length}
       />
 
-      {/* Dialog */}
-      <ServiceFormDialog
-        open={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        onSubmit={handleSubmit}
-        initialData={editingService}
+      <ServiceDialog
+        serviceId={editingServiceId}
+        isOpen={isDialogOpen}
+        onClose={() => {
+          setIsDialogOpen(false)
+          setEditingServiceId(null)
+        }}
+        onSuccess={() => {
+          loadTrips()
+          setIsDialogOpen(false)
+          setEditingServiceId(null)
+        }}
       />
     </div>
   )
