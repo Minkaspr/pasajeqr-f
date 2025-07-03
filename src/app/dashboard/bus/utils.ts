@@ -1,4 +1,3 @@
-import { BusStatus } from "@/types/bus"
 import {
   CheckCircle2,
   BusFront,
@@ -6,6 +5,7 @@ import {
   XCircle,
   LucideIcon,
 } from "lucide-react"
+import { BusStatus } from "./types/bus"
 
 export const statusConfig: Record<
   BusStatus,

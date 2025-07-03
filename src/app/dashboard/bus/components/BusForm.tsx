@@ -1,10 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Bus } from "@/types/bus"
+import { useCallback, useEffect, useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
@@ -12,160 +8,249 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select"
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog"
+import { FieldError } from "@/components/field-error"
+import { Label } from "@/components/ui/label"
+import { toast } from "sonner"
+import { getBusById, updateBus, createBus } from "../lib/api"
+import { busUpdateSchema, busCreateSchema, BusUpdateRQ, BusCreateRQ } from "../types/bus.schema"
+import { BusStatus } from "../types/bus"
+import { statusConfig } from "../utils"
 
-const busSchema = z.object({
-  plate: z.string().min(5, "Debe tener al menos 5 caracteres"),
-  model: z.string().min(2, "Modelo requerido"),
-  capacity: z.coerce.number().min(1, "Debe ser mayor que cero"),
-  status: z.enum(["OPERATIONAL", "IN_SERVICE", "UNDER_MAINTENANCE", "OUT_OF_SERVICE"]),
-})
 
-export type BusFormValues = z.infer<typeof busSchema>
-
-type Props = {
-  open: boolean
+interface BusFormProps {
+  busId: number | null
+  isOpen: boolean
   onClose: () => void
-  onSubmit: (data: BusFormValues) => void
-  editingBus?: Bus | null
+  onSuccess: () => void
 }
 
-export function BusForm({ open, onClose, onSubmit, editingBus }: Props) {
-  console.log("🔄 Render BusForm", { open, editingBus })
+export function BusForm({ busId, isOpen, onClose, onSuccess }: BusFormProps) {
+  const isEdit = busId !== null
 
-  const form = useForm<BusFormValues>({
-    resolver: zodResolver(busSchema),
-    defaultValues: {
-      plate: "",
-      model: "",
-      capacity: 20,
-      status: "OPERATIONAL",
-    },
-  })
+  const [plate, setPlate] = useState("")
+  const [model, setModel] = useState("")
+  const [capacity, setCapacity] = useState(20)
+  const [status, setStatus] = useState<BusStatus>(BusStatus.OPERATIONAL)
 
-  const isEditing = !!editingBus
+  const [errors, setErrors] = useState<{ plate?: string; model?: string; capacity?: string; status?: string }>({})
+  const [touched, setTouched] = useState({ plate: false, model: false, capacity: false, status: false })
+  const [loading, setLoading] = useState(false)
+  const [formKey, setFormKey] = useState(0)
 
-  useEffect(() => {
-    if (open) {
-      const values = {
-        plate: editingBus?.plate ?? "",
-        model: editingBus?.model ?? "",
-        capacity: editingBus?.capacity ?? 20,
-        status: editingBus?.status ?? "OPERATIONAL",
-      }
-      form.reset(values)
-    } else {
+  // Validación reactiva
+  const validate = useCallback(() => {
+    const schema = isEdit ? busUpdateSchema : busCreateSchema
+    const result = schema.safeParse({ plate, model, capacity, status })
+
+    if (!result.success) {
+      const fieldErrors = result.error.flatten().fieldErrors
+      setErrors({
+        plate: fieldErrors.plate?.[0],
+        model: fieldErrors.model?.[0],
+        capacity: fieldErrors.capacity?.[0],
+        status: fieldErrors.status?.[0],
+      })
+      return false
     }
-  }, [editingBus?.capacity, editingBus?.model, editingBus?.plate, editingBus?.status, form, open]) 
 
-  const handleInternalSubmit = (values: BusFormValues) => {
-    console.log("✅ Form submitted:", values)
-    onSubmit(values)
-    onClose()
+    setErrors({})
+    return true
+  }, [plate, model, capacity, status, isEdit])
+
+  // Cargar datos
+  useEffect(() => {
+    if (!isOpen) return
+
+    const fetchData = async () => {
+      setLoading(true)
+      try {
+        if (isEdit && busId !== null) {
+          const res = await getBusById(busId)
+          const bus = res.data
+          if (bus) {
+            setPlate(bus.plate)
+            setModel(bus.model)
+            setCapacity(bus.capacity)
+            setStatus(bus.status as BusStatus)
+          }
+        }
+      } catch (err) {
+        console.error("❌ Error cargando bus:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [isOpen, busId, isEdit])
+
+  // Reset al cerrar
+  useEffect(() => {
+    if (!isOpen) {
+      setPlate("")
+      setModel("")
+      setCapacity(20)
+      setStatus(BusStatus.OPERATIONAL)
+      setErrors({})
+      setTouched({ plate: false, model: false, capacity: false, status: false })
+      setFormKey((prev) => prev + 1)
+    }
+  }, [isOpen])
+
+  // Validación reactiva si se tocó algo
+  useEffect(() => {
+    if (touched.plate || touched.model || touched.capacity || touched.status) {
+      validate()
+    }
+  }, [plate, model, capacity, status, touched, validate])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setTouched({ plate: true, model: true, capacity: true, status: true })
+
+    if (!validate()) return
+
+    try {
+      setLoading(true)
+
+      const payload = { plate, model, capacity, status }
+
+      if (isEdit) {
+        await updateBus(busId!, payload as BusUpdateRQ)
+      } else {
+        await createBus(payload as BusCreateRQ)
+      }
+
+      onSuccess()
+      onClose()
+    } catch (error) {
+      console.error("❌ Error al guardar bus:", error)
+      toast.error("Ocurrió un error al guardar el bus.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>{isEditing ? "Editar bus" : "Registrar nuevo bus"}</DialogTitle>
-          <DialogDescription>
-            {isEditing
-              ? "Modifica la información del bus seleccionado."
-              : "Completa los siguientes campos para registrar un nuevo bus."}
-          </DialogDescription>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent key={formKey} className="max-w-lg w-full mx-4">
+        <DialogHeader className="pb-4">
+          <DialogTitle className="text-lg font-semibold">{isEdit ? "Editar Bus" : "Nuevo Bus"}</DialogTitle>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleInternalSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="plate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Placa</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Ej: ABC-123" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+        <form onSubmit={handleSubmit} className="space-y-5 overflow-hidden">
+          {/* Placa */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Placa</Label>
+            <Input
+              value={plate}
+              onChange={(e) => {
+                setPlate(e.target.value)
+                setTouched((prev) => ({ ...prev, plate: true }))
+              }}
+              disabled={loading}
+              placeholder="Ej: ABC-123"
+              className={`h-10 min-w-0 ${errors.plate && touched.plate ? "border-red-500" : ""}`}
             />
-            <FormField
-              control={form.control}
-              name="model"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Modelo</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Ej: Mercedes Sprinter" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <FieldError show={!!errors.plate && touched.plate} message={errors.plate} />
+          </div>
+
+          {/* Modelo */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Modelo</Label>
+            <Input
+              value={model}
+              onChange={(e) => {
+                setModel(e.target.value)
+                setTouched((prev) => ({ ...prev, model: true }))
+              }}
+              disabled={loading}
+              placeholder="Ej: Mercedes Sprinter"
+              className={`h-10 min-w-0 ${errors.model && touched.model ? "border-red-500" : ""}`}
             />
-            <FormField
-              control={form.control}
-              name="capacity"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Capacidad</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <FieldError show={!!errors.model && touched.model} message={errors.model} />
+          </div>
+
+          {/* Capacidad */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Capacidad</Label>
+            <Input
+              type="number"
+              value={capacity}
+              min={1}
+              onChange={(e) => {
+                setCapacity(Number(e.target.value))
+                setTouched((prev) => ({ ...prev, capacity: true }))
+              }}
+              disabled={loading}
+              className={`h-10 min-w-0 ${errors.capacity && touched.capacity ? "border-red-500" : ""}`}
             />
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Estado</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona un estado" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="OPERATIONAL">Operativo</SelectItem>
-                      <SelectItem value="IN_SERVICE">En servicio</SelectItem>
-                      <SelectItem value="UNDER_MAINTENANCE">En mantenimiento</SelectItem>
-                      <SelectItem value="OUT_OF_SERVICE">Fuera de servicio</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" onClick={onClose}>
-                Cancelar
-              </Button>
-              <Button type="submit">
-                {isEditing ? "Guardar cambios" : "Registrar bus"}
-              </Button>
-            </div>
-          </form>
-        </Form>
+            <FieldError show={!!errors.capacity && touched.capacity} message={errors.capacity} />
+          </div>
+
+          {/* Estado */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Estado</Label>
+            <Select
+              value={status}
+              onValueChange={(value) => {
+                setStatus(value as BusStatus)
+                setTouched((prev) => ({ ...prev, status: true }))
+              }}
+              disabled={loading}
+            >
+              <SelectTrigger
+                className={`h-10 min-w-0 ${errors.status && touched.status ? "border-red-500" : ""}`}
+              >
+                {status ? (
+                  <div className="flex items-center gap-2">
+                    {(() => {
+                      const config = statusConfig[status]
+                      const Icon = config.icon
+                      return (
+                        <>
+                          <Icon className={`h-4 w-4 ${config.color}`} />
+                          <span className="truncate">{config.label}</span>
+                        </>
+                      )
+                    })()}
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground">Selecciona un estado</span>
+                )}
+              </SelectTrigger>
+              <SelectContent className="max-w-[calc(100vw-2rem)] sm:max-w-lg">
+                {Object.entries(statusConfig).map(([key, config]) => (
+                  <SelectItem key={key} value={key}>
+                    <div className="flex items-center gap-2">
+                      <config.icon className={`h-4 w-4 ${config.color}`} />
+                      <span className="truncate">{config.label}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FieldError show={!!errors.status && touched.status} message={errors.status} />
+          </div>
+
+          {/* Botones */}
+          <DialogFooter className="pt-4 gap-2 sm:gap-0">
+            <Button type="button" variant="ghost" onClick={onClose} disabled={loading}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={loading || Object.values(errors).some(Boolean)}>
+              {loading ? "Guardando..." : isEdit ? "Actualizar" : "Crear"}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )

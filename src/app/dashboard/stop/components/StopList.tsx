@@ -5,23 +5,18 @@ import { Button } from "@/components/ui/button"
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-
-export interface Stop {
-  id: string
-  name: string
-  createdAt: Date
-}
+import { StopItemRS } from "../types/stop"
 
 interface StopListProps {
-  stops: Stop[]
+  stops: StopItemRS[]
   startIndex: number
-  onEdit: (stop: Stop) => void
-  onDelete: (stop: Stop) => void
+  onEdit: (stop: StopItemRS) => void
+  onDelete: (stop: StopItemRS) => void
 }
 
 export function StopList({ stops, startIndex, onEdit, onDelete }: StopListProps) {
-  const formatDate = (date: Date) =>
-    format(date, "dd/MM/yyyy", { locale: es })
+  const formatDate = (isoDate: string) =>
+    format(new Date(isoDate), "dd/MM/yyyy", { locale: es })
 
   return (
     <div className="mx-auto w-full max-w-3xl space-y-2">

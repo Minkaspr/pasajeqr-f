@@ -1,56 +1,60 @@
 "use client"
 
-import { useState, useMemo } from "react"
-import { StopList, Stop } from "./StopList"
+import { useState, useEffect } from "react"
+import { useCallback } from "react"
+
+import { StopList } from "./StopList"
 import { PaginationControls } from "./PaginationControls"
 import { StopControls } from "./StopControls"
 import { StopDialog } from "./StopDialog"
-
-const fakeStops: Stop[] = [
-  { id: "1", name: "Av. Universitaria - Puerta 1 UNMSM", createdAt: new Date() },
-  { id: "2", name: "Av. Colonial - Paradero Lima Norte", createdAt: new Date() },
-  { id: "3", name: "Av. Venezuela - Cruce con Faucett", createdAt: new Date() },
-  { id: "4", name: "Plaza Bolognesi", createdAt: new Date() },
-  { id: "5", name: "Paradero Grau - Hospital 2 de Mayo", createdAt: new Date() },
-  { id: "6", name: "Av. Abancay - Universidad Villarreal", createdAt: new Date() },
-  { id: "7", name: "Estación Central - Metropolitano", createdAt: new Date() },
-  { id: "8", name: "Paradero Tingo María", createdAt: new Date() },
-  { id: "9", name: "Óvalo Naranjal", createdAt: new Date() },
-  { id: "10", name: "Cruce Javier Prado - Arequipa", createdAt: new Date() },
-  { id: "11", name: "Óvalo Higuereta", createdAt: new Date() },
-  { id: "12", name: "Paradero Santa Anita", createdAt: new Date() },
-  { id: "13", name: "Puente Nuevo", createdAt: new Date() },
-  { id: "14", name: "Estación Bayóvar", createdAt: new Date() },
-  { id: "15", name: "Av. Brasil - Hospital del Niño", createdAt: new Date() },
-]
+import { deleteStop, getStopsPaged } from "../lib/api"
+import { StopItemRS } from "../types/stop"
+import { toast } from "sonner"
 
 export function ParaderosClientView() {
-  const [stops, setStops] = useState<Stop[]>(fakeStops)
+  const [stops, setStops] = useState<StopItemRS[]>([])
   const [search, setSearch] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
-  const [editingStop, setEditingStop] = useState<Stop | null>(null)
+  const [totalPages, setTotalPages] = useState(1)
+  const [editingStopId, setEditingStopId] = useState<number | null>(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
 
-  const filteredStops = useMemo(() => {
-    return stops.filter((stop) =>
-      stop.name.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  }, [searchQuery, stops])
+  //const totalPages = Math.ceil(filteredStops.length / itemsPerPage)
 
-  const paginatedStops = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage
-    return filteredStops.slice(start, start + itemsPerPage)
-  }, [filteredStops, currentPage, itemsPerPage])
+  const loadStops = useCallback(async () => {
+    try {
+      const response = await getStopsPaged(currentPage - 1, itemsPerPage, searchQuery)
+      const stopItems: StopItemRS[] = response.data?.stops ?? []
 
-  const totalPages = Math.ceil(filteredStops.length / itemsPerPage)
+      setStops(stopItems)
+      setTotalPages(response.data?.totalPages || 1)
+    } catch (error) {
+      console.error("❌ Error al cargar paraderos:", error)
+    }
+  }, [currentPage, itemsPerPage, searchQuery]) // <== Añade searchQuery
 
-  function handleEdit(stop: Stop) {
-    setEditingStop(stop)
-  }
+  useEffect(() => {
+    loadStops()
+  }, [loadStops])
 
-  function handleDelete(stop: Stop) {
-    setStops((prev) => prev.filter((s) => s.id !== stop.id))
+  const paginatedStops = stops
+
+  const handleDelete = async (stop: StopItemRS) => {
+    try {
+      await deleteStop(stop.id)
+      setStops((prev) => prev.filter((s) => s.id !== stop.id))
+      toast.success(`Paradero "${stop.name}" eliminado correctamente`)
+    } catch (error: unknown) {
+      console.error("❌ Error al eliminar paradero:", error)
+
+      if (error instanceof Error) {
+        toast.error(error.message)
+      } else {
+        toast.error("Error desconocido al eliminar paradero")
+      }
+    }
   }
 
   return (
@@ -60,17 +64,21 @@ export function ParaderosClientView() {
         setSearch={setSearch}
         onSearch={() => {
           setSearchQuery(search)
-          setCurrentPage(1) // Resetear página cuando se hace una nueva búsqueda
+          setCurrentPage(1)
         }}
-        onCreate={() =>
-          setEditingStop({ id: "", name: "", createdAt: new Date() })
-        }
+        onCreate={() => {
+          setEditingStopId(null)      // modo creación
+          setIsDialogOpen(true)       // abrir modal
+        }}
       />
 
       <StopList
         stops={paginatedStops}
         startIndex={(currentPage - 1) * itemsPerPage}
-        onEdit={handleEdit}
+        onEdit={(stop) => {
+          setEditingStopId(stop.id)   // modo edición
+          setIsDialogOpen(true)       // abrir modal
+        }}
         onDelete={handleDelete}
       />
 
@@ -85,22 +93,17 @@ export function ParaderosClientView() {
         }}
       />
 
-
       <StopDialog
-        stop={editingStop}
-        onClose={() => setEditingStop(null)}
-        onSave={(newStop) => {
-          if (newStop.id) {
-            setStops((prev) =>
-              prev.map((s) => (s.id === newStop.id ? newStop : s))
-            )
-          } else {
-            setStops((prev) => [
-              { ...newStop, id: crypto.randomUUID(), createdAt: new Date() },
-              ...prev,
-            ])
-          }
-          setEditingStop(null)
+        stopId={editingStopId}
+        isOpen={isDialogOpen}
+        onClose={() => {
+          setIsDialogOpen(false)
+          setEditingStopId(null)
+        }}
+        onSuccess={() => {
+          loadStops()
+          setIsDialogOpen(false)
+          setEditingStopId(null)
         }}
       />
     </div>

@@ -15,10 +15,10 @@ import { useMediaQuery } from "@/hooks/useMediaQuery"
 type Props = {
   currentPage: number
   totalPages: number
+  totalItems: number
   onPageChange: (page: number) => void
   itemsPerPage: number
-  onItemsPerPageChange: (value: number) => void
-  totalItems: number
+  setItemsPerPage: (value: number) => void
 }
 
 export function BusPagination({
@@ -26,7 +26,7 @@ export function BusPagination({
   totalPages,
   onPageChange,
   itemsPerPage,
-  onItemsPerPageChange,
+  setItemsPerPage,
   totalItems,
 }: Props) {
   const from = (currentPage - 1) * itemsPerPage + 1
@@ -65,7 +65,7 @@ export function BusPagination({
         {!isVerySmallScreen && (
           <Select
             value={itemsPerPage.toString()}
-            onValueChange={(value) => onItemsPerPageChange(Number(value))}
+            onValueChange={(value) => setItemsPerPage(Number(value))}
           >
             <SelectTrigger className="w-[120px]">
               <SelectValue />

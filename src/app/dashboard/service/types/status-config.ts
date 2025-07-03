@@ -7,7 +7,7 @@ export enum ServiceStatus {
   SCHEDULED = "SCHEDULED",
   IN_PROGRESS = "IN_PROGRESS",
   COMPLETED = "COMPLETED",
-  CANCELLED = "CANCELLED",
+  CANCELED = "CANCELLED",
 }
 
 // Configuración de los estados
@@ -27,7 +27,7 @@ export const statusConfig = {
     color: "bg-green-100 text-green-800 border-green-200",
     icon: Clock,
   },
-  [ServiceStatus.CANCELLED]: {
+  [ServiceStatus.CANCELED]: {
     label: "Cancelado",
     color: "bg-red-100 text-red-800 border-red-200",
     icon: Trash2,
