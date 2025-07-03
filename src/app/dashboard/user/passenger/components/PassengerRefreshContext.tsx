@@ -1,23 +1,13 @@
-"use client"
+'use client'
 
-import { createContext, useContext, useState, ReactNode } from "react"
+import { createContext, useContext } from 'react'
 
-type PassengerRefreshContextType = () => void
+type RefreshFunction = (page?: number, size?: number) => Promise<void>
 
-const PassengerRefreshContext = createContext<PassengerRefreshContextType>(() => {})
+const PassengerRefreshContext = createContext<RefreshFunction>(() => {
+  throw new Error("PassengerRefreshContext usado fuera del proveedor")
+})
 
-export function usePassengerRefresh() {
-  return useContext(PassengerRefreshContext)
-}
+export const PassengerRefreshProvider = PassengerRefreshContext.Provider
 
-export function PassengerRefreshProvider({ children }: { children: ReactNode }) {
-  const [, setVersion] = useState(0)
-
-  const refresh = () => setVersion((v) => v + 1)
-
-  return (
-    <PassengerRefreshContext.Provider value={refresh}>
-      {children}
-    </PassengerRefreshContext.Provider>
-  )
-}
+export const usePassengerRefresh = () => useContext(PassengerRefreshContext)

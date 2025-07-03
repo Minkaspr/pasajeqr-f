@@ -21,7 +21,7 @@ export function AdminAdd() {
   const [open, setOpen] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
-  const [form, setForm] = useState<AdminCreateRQ >({
+  const [form, setForm] = useState<AdminCreateRQ>({
     firstName: "",
     lastName: "",
     dni: "",

@@ -10,16 +10,17 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog"
-
 import { toast } from "sonner"
-import { PassengerMockItem } from "./passenger"
+import { useState } from "react"
+
+import { PassengerUserItemRS } from "../types/passenger"
 import { usePassengerRefresh } from "./PassengerRefreshContext"
-import { togglePassengerStatus } from "./mockPassengers"
+import { changePassengerStatus } from "../lib/api"
 
 interface PassengerToggleStatusProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  passenger: PassengerMockItem
+  passenger: PassengerUserItemRS
 }
 
 export function PassengerToggleStatus({
@@ -28,16 +29,25 @@ export function PassengerToggleStatus({
   passenger,
 }: PassengerToggleStatusProps) {
   const refresh = usePassengerRefresh()
+  const [loading, setLoading] = useState(false)
 
   const handleConfirm = async () => {
+    setLoading(true)
     try {
-      togglePassengerStatus(passenger.id)
-      toast.success(passenger.status ? "Cuenta desactivada" : "Cuenta activada")
+      const newStatus = !passenger.status
+      await changePassengerStatus(passenger.id, { active: newStatus })
+      toast.success(
+        newStatus
+          ? "Cuenta activada correctamente"
+          : "Cuenta desactivada correctamente"
+      )
       refresh()
       onOpenChange(false)
     } catch (error) {
       console.error("Error al cambiar el estado del pasajero:", error)
       toast.error("Error al cambiar el estado")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -54,8 +64,13 @@ export function PassengerToggleStatus({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={handleConfirm}>Confirmar</AlertDialogAction>
+          <AlertDialogCancel disabled={loading}>Cancelar</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleConfirm}
+            disabled={loading}
+          >
+            {loading ? "Procesando..." : "Confirmar"}
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

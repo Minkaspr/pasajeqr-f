@@ -52,6 +52,13 @@ export const passwordField = z
     if (!/[@#\$%*_\-]/.test(val)) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Debe tener un símbolo: @ # $ % * _ -" })
     }
+
+    if (/[^a-zA-Z0-9@#\$%*_\-]/.test(val)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Solo se permiten letras, números y los símbolos: @ # $ % * _ -"
+      })
+    }
   })
 
 // Fecha válida y en el pasado

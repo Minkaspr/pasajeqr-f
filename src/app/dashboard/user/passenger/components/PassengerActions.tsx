@@ -9,14 +9,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-import { PassengerMockItem } from "./passenger"
 import { PassengerView } from "./PassengerView"
 import { PassengerEdit } from "./PassengerEdit"
 import { PassengerDelete } from "./PassengerDelete"
 import { PassengerToggleStatus } from "./PassengerToggleStatus"
+import { PassengerUserItemRS } from "../types/passenger"
 
 interface RowActionsProps {
-  rowData: PassengerMockItem
+  rowData: PassengerUserItemRS
 }
 
 export function PassengerActions({ rowData }: RowActionsProps) {
@@ -61,21 +61,15 @@ export function PassengerActions({ rowData }: RowActionsProps) {
       </DropdownMenu>
 
       <PassengerView
+        passengerId={rowData.id}
         open={openView}
         onOpenChange={setOpenView}
-        passenger={{
-          ...rowData,
-          updatedAt: new Date().toISOString(),
-        }}
       />
 
       <PassengerEdit
+        passengerId={rowData.id}
         open={openEdit}
         onOpenChange={setOpenEdit}
-        passenger={{
-          ...rowData,
-          updatedAt: new Date().toISOString(),
-        }}
       />
 
       <PassengerToggleStatus

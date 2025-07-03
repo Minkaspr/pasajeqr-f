@@ -61,8 +61,14 @@ export default function AdminClientView() {
         await bulkDeleteAdmins(payload)
       }
 
-      // Recargar datos después de eliminar
-      fetchData()
+      const newTotal = totalItems - ids.length
+      const lastPage = Math.max(0, Math.ceil(newTotal / pageSize) - 1)
+
+      if (pageIndex > lastPage) {
+        setPageIndex(lastPage)
+      } else {
+        fetchData()
+      }
     } catch (err) {
       console.error("❌ Error al eliminar:", err)
     }

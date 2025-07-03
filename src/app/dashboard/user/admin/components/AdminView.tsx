@@ -9,11 +9,11 @@ import {
 } from "@/components/ui/dialog"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
+import { useState, useEffect } from "react"
+import { toast } from "sonner"
 
 import { getAdminById } from "../lib/api"
 import { AdminDetailRS  } from "../types/admin"
-import { useState, useEffect } from "react"
-import { toast } from "sonner"
 
 interface AdminViewProps {
   adminId: number
