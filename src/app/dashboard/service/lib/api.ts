@@ -1,6 +1,6 @@
 import { ApiResponse } from "@/types/api-response"
 import { BulkDeleteRQ, BulkDeleteRS } from "@/types/bulk-delete"
-import { TripsRS, TripDetailRS } from "../types/service"
+import { TripsRS, TripDetailRS, TripEditRS } from "../types/service"
 import { TripCreateRQ, TripUpdateRQ } from "../types/service.schemas"
 
 const BASE_URL = `${process.env.NEXT_PUBLIC_API_V1_URL}/services`
@@ -32,7 +32,7 @@ export async function getTripsPaged(
 /**
  * Obtener un servicio por ID
  */
-export async function getTripById(id: number): Promise<ApiResponse<TripDetailRS>> {
+export async function getTripById(id: number): Promise<ApiResponse<TripEditRS>> {
   const res = await fetch(`${BASE_URL}/${id}`)
   const responseBody = await res.json()
 
@@ -106,6 +106,20 @@ export async function bulkDeleteTrips(data: BulkDeleteRQ): Promise<ApiResponse<B
   const responseBody = await res.json()
   if (!res.ok) {
     throw new Error(`Error al eliminar servicios en lote: ${responseBody.message || res.status}`)
+  }
+
+  return responseBody
+}
+
+/**
+ * Obtener un token JWT válido para QR de un servicio
+ */
+export async function getTripQrToken(tripId: number): Promise<ApiResponse<string>> {
+  const res = await fetch(`${BASE_URL}/${tripId}/qr-token`)
+
+  const responseBody = await res.json()
+  if (!res.ok) {
+    throw new Error(`Error al obtener token QR: ${responseBody.message || res.status}`)
   }
 
   return responseBody

@@ -1,8 +1,8 @@
 export enum BusStatus {
-  OPERATIONAL = "OPERATIONAL",
-  IN_SERVICE = "IN_SERVICE",
-  UNDER_MAINTENANCE = "UNDER_MAINTENANCE",
-  OUT_OF_SERVICE = "OUT_OF_SERVICE",
+  OPERATIONAL = "OPERATIONAL",           // Está en buen estado físico y técnico, pero no está en uso ahora.
+  IN_SERVICE = "IN_SERVICE",             // Ya está asignado a un servicio activo.
+  UNDER_MAINTENANCE = "UNDER_MAINTENANCE", // Está en el taller o fuera de uso por revisión.
+  OUT_OF_SERVICE = "OUT_OF_SERVICE",     // Ya no se usa, está dado de baja o fuera de circulación.
 }
 
 /**

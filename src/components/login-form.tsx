@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { EyeOff, Eye } from "lucide-react";
+import { loginUser } from "@/app/auth/auth";
 
 export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
   const [email, setEmail] = useState("");
@@ -38,33 +39,16 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
     }
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_V1_URL}/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const user = await loginUser(email, password);
 
-      const data = await res.json();
-      console.log(data.message);
+      const role = user.role;
 
-      if (res.ok && data.status === 200) {
-        const role = data.data.user.role;
-        localStorage.setItem("token", data.data.token);
-        localStorage.setItem("user", JSON.stringify(data.data.user));
-
-        if (role === "ADMIN") {
-          router.push("/dashboard");
-        } else if (role === "PASSENGER") {
-          router.push("/customer");
-        } else {
-          setServerError("Rol no reconocido. Contacte al administrador.");
-        }
-      } else if (data.status === 401) {
-        setServerError("Usuario o contraseña inválidas");
+      if (role === "ADMIN") {
+        router.replace("/dashboard");
+      } else if (role === "PASSENGER") {
+        router.replace("/customer");
       } else {
-        setServerError(data.message || "Error desconocido");
+        setServerError("Rol no reconocido. Contacte al administrador.");
       }
     } catch (error) {
       console.error("Error al hacer login:", error);

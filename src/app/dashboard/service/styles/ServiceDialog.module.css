@@ -1,0 +1,31 @@
+.hoverScrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.2s ease;
+}
+
+.hoverScrollbar:hover {
+  scrollbar-color: hsl(var(--muted-foreground) / 0.4) transparent;
+}
+
+.hoverScrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.hoverScrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.hoverScrollbar::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+.hoverScrollbar:hover::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.4);
+}
+
+.hoverScrollbar:hover::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.6);
+}

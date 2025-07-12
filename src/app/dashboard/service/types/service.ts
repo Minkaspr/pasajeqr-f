@@ -39,3 +39,17 @@ export interface TripDetailRS {
   arrivalDateTime: string | null // puede ser null si no hay llegada
   status: ServiceStatus
 }
+
+export interface TripEditRS {
+  id: number
+  code: string
+  busId: number
+  driverId: number
+  originStopId: number
+  destinationStopId: number
+  departureDate: string // "YYYY-MM-DD"
+  departureTime: string // "HH:mm:ss"
+  arrivalDate: string | null
+  arrivalTime: string | null
+  status: ServiceStatus
+}

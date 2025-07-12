@@ -26,3 +26,11 @@ export const adminUpdateSchema = z.object({
   birthDate: pastDateField("La fecha de nacimiento"),
 });
 export type AdminUpdateRQ = z.infer<typeof adminUpdateSchema>;
+
+export const adminProfileUpdateSchema = z.object({
+  firstName: lettersField('El nombre', { min: 3, max: 50 }),
+  lastName: lettersField('El apellido', { min: 3, max: 50 }),
+  birthDate: pastDateField('La fecha de nacimiento'),
+});
+
+export type AdminProfileUpdateRQ = z.infer<typeof adminProfileUpdateSchema>;

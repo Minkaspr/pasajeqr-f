@@ -1,7 +1,8 @@
 import { ApiResponse, OneErrorResponse } from "@/types/api-response";
-import { BulkDeleteRequest, BulkDeleteResponseDTO, ChangeStatusRequest, DriverDetailDTO, DriverRegisterRequest, DriversListData, DriverUpdateRequest } from "@/types/driver"
+import { AvailableDriverRS, BulkDeleteRequest, BulkDeleteResponseDTO, ChangeStatusRequest, DriverDetailDTO, DriverListItem, DriverRegisterRequest, DriversListData, DriverUpdateRequest } from "@/types/driver"
 
 const API_URL = process.env.NEXT_PUBLIC_API_V1_URL || "http://localhost:8080/api/v1";
+const DRIVER_BASE_URL = `${process.env.NEXT_PUBLIC_API_V1_URL}/drivers`;
 
 export interface GetDriversParams {
   page?: number
@@ -12,7 +13,7 @@ export interface GetDriversParams {
 // Obtener lista de conductores con paginación y búsqueda
 export async function getDrivers(
   params: GetDriversParams = {}
-): Promise<DriversListData> {
+): Promise<DriversListData<DriverListItem>> {
   const { page = 0, size = 10, search } = params;
 
   const queryParams = new URLSearchParams({
@@ -34,7 +35,7 @@ export async function getDrivers(
     throw new Error("Error al obtener conductores");
   }
 
-  const json: ApiResponse<DriversListData> = await res.json();
+  const json: ApiResponse<DriversListData<DriverListItem>> = await res.json();
 
   if (!json.data) {
     throw new Error(
@@ -43,6 +44,21 @@ export async function getDrivers(
   }
 
   return json.data;
+}
+
+export async function getAvailableDrivers(
+  page = 0,
+  size = 10
+): Promise<ApiResponse<DriversListData<AvailableDriverRS>>> {
+  const res = await fetch(`${DRIVER_BASE_URL}/available?page=${page}&size=${size}`);
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`Error al obtener conductores disponibles: ${res.status} - ${errorText}`);
+  }
+
+  const data = await res.json();
+  return data;
 }
 
 // Obtener un conductor por ID
