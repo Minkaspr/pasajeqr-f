@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { ArrowLeft, User, Lock, Save, X } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -8,6 +8,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { AdminProfileUpdateRQ, adminProfileUpdateSchema } from "@/app/dashboard/user/admin/types/admin.schema"
+import { getAdminProfile, updateAdminProfile } from "@/app/dashboard/user/admin/lib/api"
+import { ensureAuth } from "@/lib/token"
+import router from "next/router"
 
 type View = "main" | "profile" | "password"
 
@@ -27,11 +31,15 @@ export function UserSettings({ user, open, onOpenChange }: UserSettingsProps) {
   const [currentView, setCurrentView] = useState<View>("main")
 
   // Estados para el formulario de perfil
-  const [profileData, setProfileData] = useState({
-    firstName: user.firstName,
-    lastName: user.lastName,
-    dni: user.dni || "",
-  })
+  const [profileData, setProfileData] = useState<AdminProfileUpdateRQ>({
+    firstName: "",
+    lastName: "",
+    birthDate: "",
+  });
+
+  const [errors, setErrors] = useState<Partial<Record<keyof AdminProfileUpdateRQ, string>>>({});
+  const [touched, setTouched] = useState<Partial<Record<keyof AdminProfileUpdateRQ, boolean>>>({});
+  const [loading, setLoading] = useState(false);
 
   // Estados para el formulario de contraseña
   const [passwordData, setPasswordData] = useState({
@@ -40,35 +48,87 @@ export function UserSettings({ user, open, onOpenChange }: UserSettingsProps) {
     confirmPassword: "",
   })
 
-  function getInitials(firstName?: string, lastName?: string): string {
-    const first = firstName?.[0] ?? ""
-    const last = lastName?.[0] ?? ""
-    const initials = `${first}${last}`.toUpperCase()
-    return initials || "US"
+  useEffect(() => {
+    if (!open) return;
+
+    const fetchProfile = async () => {
+      setLoading(true);
+      const authOk = await ensureAuth();
+      if (!authOk) {
+        router.replace("/login"); 
+        return;
+      }
+
+      try {
+        const res = await getAdminProfile();
+        if (!res.data) return;
+
+        const { firstName, lastName, birthDate } = res.data;
+        setProfileData({
+          firstName,
+          lastName,
+          birthDate: birthDate?.slice(0, 10) || "",
+        });
+        setErrors({});
+        setTouched({});
+      } catch (err) {
+        console.error("❌ Error al obtener perfil:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [open]);
+
+  function validateProfile(): boolean {
+    const result = adminProfileUpdateSchema.safeParse(profileData);
+    if (!result.success) {
+      const fieldErrors = result.error.flatten().fieldErrors;
+      setErrors({
+        firstName: fieldErrors.firstName?.[0] || "",
+        lastName: fieldErrors.lastName?.[0] || "",
+        birthDate: fieldErrors.birthDate?.[0] || "",
+      });
+      return false;
+    }
+    setErrors({});
+    return true;
   }
+
+  async function handleSaveProfile() {
+    const isValid = validateProfile();
+    if (!isValid) return;
+
+    const authOk = await ensureAuth();
+    if (!authOk) {
+      router.replace("/login");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await updateAdminProfile(profileData);
+      handleClose(); 
+    } catch (error) {
+      console.error("❌ Error al actualizar perfil:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
 
   const handleClose = () => {
-    setCurrentView("main")
-    onOpenChange(false)
-    // Reset forms
+    setCurrentView("main");
+    onOpenChange(false);
     setProfileData({
-      firstName: user.firstName,
-      lastName: user.lastName,
-      dni: user.dni || "",
-    })
-    setPasswordData({
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    })
-  }
-
-  const handleSaveProfile = () => {
-    // Aquí implementarías la lógica para guardar el perfil
-    console.log("Guardando perfil:", profileData)
-    // Simular guardado exitoso
-    handleClose()
-  }
+      firstName: "",
+      lastName: "",
+      birthDate: "",
+    });
+    setErrors({});
+    setTouched({});
+  };
 
   const handleSavePassword = () => {
     // Validar que las contraseñas coincidan
@@ -89,6 +149,13 @@ export function UserSettings({ user, open, onOpenChange }: UserSettingsProps) {
     } else {
       setCurrentView("main")
     }
+  }
+
+  function getInitials(firstName?: string, lastName?: string): string {
+    const first = firstName?.[0] ?? ""
+    const last = lastName?.[0] ?? ""
+    const initials = `${first}${last}`.toUpperCase()
+    return initials || "US"
   }
 
   const renderMainView = () => (
@@ -142,65 +209,77 @@ export function UserSettings({ user, open, onOpenChange }: UserSettingsProps) {
 
       {/* Formulario */}
       <div className="space-y-4">
+        {/* Nombre */}
         <div className="space-y-2">
           <Label htmlFor="firstName">Nombre</Label>
           <Input
             id="firstName"
             value={profileData.firstName}
-            onChange={(e) =>
-              setProfileData((prev) => ({
-                ...prev,
-                firstName: e.target.value,
-              }))
-            }
+            onChange={(e) => {
+              setProfileData((prev) => ({ ...prev, firstName: e.target.value }));
+              setTouched((prev) => ({ ...prev, firstName: true }));
+            }}
+            onBlur={validateProfile}
             placeholder="Ingresa tu nombre"
+            className={errors.firstName ? "border-red-500" : ""}
           />
+          {touched.firstName && errors.firstName && (
+            <p className="text-sm text-red-500">{errors.firstName}</p>
+          )}
         </div>
 
+        {/* Apellido */}
         <div className="space-y-2">
           <Label htmlFor="lastName">Apellido</Label>
           <Input
             id="lastName"
             value={profileData.lastName}
-            onChange={(e) =>
-              setProfileData((prev) => ({
-                ...prev,
-                lastName: e.target.value,
-              }))
-            }
+            onChange={(e) => {
+              setProfileData((prev) => ({ ...prev, lastName: e.target.value }));
+              setTouched((prev) => ({ ...prev, lastName: true }));
+            }}
+            onBlur={validateProfile}
             placeholder="Ingresa tu apellido"
+            className={errors.lastName ? "border-red-500" : ""}
           />
+          {touched.lastName && errors.lastName && (
+            <p className="text-sm text-red-500">{errors.lastName}</p>
+          )}
         </div>
 
+        {/* Fecha de nacimiento */}
         <div className="space-y-2">
-          <Label htmlFor="dni">DNI</Label>
+          <Label htmlFor="birthDate">Fecha de Nacimiento</Label>
           <Input
-            id="dni"
-            value={profileData.dni}
-            onChange={(e) =>
-              setProfileData((prev) => ({
-                ...prev,
-                dni: e.target.value,
-              }))
-            }
-            placeholder="Ingresa tu DNI"
+            id="birthDate"
+            type="date"
+            value={profileData.birthDate}
+            onChange={(e) => {
+              setProfileData((prev) => ({ ...prev, birthDate: e.target.value }));
+              setTouched((prev) => ({ ...prev, birthDate: true }));
+            }}
+            onBlur={validateProfile}
+            className={errors.birthDate ? "border-red-500" : ""}
           />
+          {touched.birthDate && errors.birthDate && (
+            <p className="text-sm text-red-500">{errors.birthDate}</p>
+          )}
         </div>
       </div>
 
       {/* Botones */}
       <div className="flex space-x-3 pt-4">
-        <Button onClick={handleSaveProfile} className="flex-1">
+        <Button onClick={handleSaveProfile} className="flex-1" disabled={loading}>
           <Save className="mr-2 h-4 w-4" />
-          Guardar
+          {loading ? "Guardando..." : "Guardar"}
         </Button>
-        <Button variant="outline" onClick={handleCancel} className="flex-1">
+        <Button variant="outline" onClick={handleCancel} className="flex-1" disabled={loading}>
           <X className="mr-2 h-4 w-4" />
           Cancelar
         </Button>
       </div>
     </div>
-  )
+  );
 
   const renderPasswordView = () => (
     <div className="space-y-6">

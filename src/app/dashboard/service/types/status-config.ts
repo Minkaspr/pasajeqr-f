@@ -7,7 +7,7 @@ export enum ServiceStatus {
   SCHEDULED = "SCHEDULED",
   IN_PROGRESS = "IN_PROGRESS",
   COMPLETED = "COMPLETED",
-  CANCELED = "CANCELLED",
+  CANCELED = "CANCELED",
 }
 
 // Configuración de los estados

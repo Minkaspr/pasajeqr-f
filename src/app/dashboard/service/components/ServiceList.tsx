@@ -1,6 +1,6 @@
 "use client"
 
-import { statusConfig } from "../types/status-config"
+import { ServiceStatus, statusConfig } from "../types/status-config"
 import {
   Table,
   TableBody,
@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Edit, Trash2 } from "lucide-react"
+import { Download, Edit, QrCode, Trash2 } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -24,6 +24,7 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog"
 import { TripItemRS } from "../types/service"
+import { generateServiceQr } from "./generateServiceQr"
 
 interface ServiceListProps {
   services: TripItemRS[]
@@ -97,6 +98,7 @@ export function ServiceList({ services, onEdit, onDelete }: ServiceListProps) {
 
                   <TableCell className="text-center">
                     <div className="flex justify-center gap-2">
+                      {/* Editar */}
                       <Button
                         size="sm"
                         variant="outline"
@@ -107,6 +109,23 @@ export function ServiceList({ services, onEdit, onDelete }: ServiceListProps) {
                         <span className="sr-only">Editar servicio {service.code}</span>
                       </Button>
 
+                      {/* Generar QR */}
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => generateServiceQr(service.id, service.code)}
+                        className="hover:scale-105 transition-transform"
+                        disabled={
+                          service.status === ServiceStatus.COMPLETED ||
+                          service.status === ServiceStatus.CANCELED
+                        }
+                      >
+                        <QrCode className="h-4 w-4" />
+                        <Download className="h-4 w-4 ml-1" />
+                        <span className="sr-only">Descargar QR del servicio {service.code}</span>
+                      </Button>
+
+                      {/* Eliminar */}
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button

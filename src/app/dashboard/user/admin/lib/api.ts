@@ -1,9 +1,10 @@
 import type { ApiResponse } from '@/types/api-response';
 import type { AdminDetailRS, AdminsRS } from '../types/admin';
-import type { AdminCreateRQ, AdminUpdateRQ } from '../types/admin.schema';
+import type { AdminCreateRQ, AdminProfileUpdateRQ, AdminUpdateRQ } from '../types/admin.schema';
 import type { ChangePasswordRQ } from '@/types/change-password';
 import type { UserStatusRQ, UserStatusRS } from '@/types/user-status';
 import type { BulkDeleteRQ, BulkDeleteRS } from '@/types/bulk-delete';
+import { getToken } from '@/lib/token';
 
 const BASE_URL = `${process.env.NEXT_PUBLIC_API_V1_URL}/admins`;
 
@@ -127,6 +128,56 @@ export async function bulkDeleteAdmins(data: BulkDeleteRQ): Promise<ApiResponse<
 
   if (!res.ok) {
     throw new Error(`Error al eliminar en lote: ${responseBody.message || res.status}`);
+  }
+
+  return responseBody;
+}
+
+export async function updateAdminProfile(data: AdminProfileUpdateRQ): Promise<ApiResponse<AdminDetailRS>> {
+  const token = getToken();
+  
+  const res = await fetch(`${BASE_URL}/perfil`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(data),
+  });
+
+  const responseBody = await res.json();
+
+  if (!res.ok) {
+    throw new Error(`Error al actualizar perfil: ${responseBody.message || res.status}`);
+  }
+
+  const updatedUser = {
+    id: responseBody.data.id,
+    email: responseBody.data.email,
+    firstName: responseBody.data.firstName,
+    lastName: responseBody.data.lastName,
+    role: responseBody.data.role, 
+  };
+  localStorage.setItem("user", JSON.stringify(updatedUser));
+  window.dispatchEvent(new Event("storage"));
+
+  return responseBody;
+}
+
+export async function getAdminProfile(): Promise<ApiResponse<AdminDetailRS>> {
+  console.log("Token:", getToken());
+
+  const res = await fetch(`${BASE_URL}/perfil`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${getToken()}`,
+    },
+  });
+
+  const responseBody = await res.json();
+
+  if (!res.ok) {
+    throw new Error(`Error al obtener perfil: ${responseBody.message || res.status}`);
   }
 
   return responseBody;

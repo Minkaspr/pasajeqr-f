@@ -3,13 +3,17 @@ import { z } from "zod"
 /**
  * Campo: ID de paradero
  */
-const stopIdField = z
-  .number({
-    required_error: "El ID del paradero es obligatorio",
-    invalid_type_error: "El ID debe ser un número",
-  })
-  .int("El ID debe ser un número entero")
-  .positive("El ID debe ser mayor que 0")
+const stopIdField = z.preprocess(
+  (val) => (val === "" || val === null ? undefined : val),
+  z
+    .number({
+      required_error: "Debes seleccionar un paradero.",
+      invalid_type_error: "Debes seleccionar un paradero.",
+    })
+    .int("El ID debe ser un número entero")
+    .positive("Debes seleccionar un paradero.")
+)
+
 
 /**
  * Campo: Precio
@@ -28,21 +32,31 @@ const priceField = z
   /**
  * Esquema para crear una tarifa
  */
-export const fareCreateSchema = z.object({
-  originStopId: stopIdField,
-  destinationStopId: stopIdField,
-  price: priceField,
-})
+export const fareCreateSchema = z
+  .object({
+    originStopId: stopIdField,
+    destinationStopId: stopIdField,
+    price: priceField,
+  })
+  .refine((data) => data.originStopId !== data.destinationStopId, {
+    path: ["destinationStopId"],
+    message: "El paradero de destino no puede ser igual al de origen.",
+  })
 
 export type FareCreateRQ = z.infer<typeof fareCreateSchema>
 
 /**
  * Esquema para actualizar una tarifa
  */
-export const fareUpdateSchema = z.object({
-  originStopId: stopIdField,
-  destinationStopId: stopIdField,
-  price: priceField,
-})
+export const fareUpdateSchema = z
+  .object({
+    originStopId: stopIdField,
+    destinationStopId: stopIdField,
+    price: priceField,
+  })
+  .refine((data) => data.originStopId !== data.destinationStopId, {
+    path: ["destinationStopId"],
+    message: "El paradero de destino no puede ser igual al de origen.",
+  })
 
 export type FareUpdateRQ = z.infer<typeof fareUpdateSchema>

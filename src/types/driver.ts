@@ -1,4 +1,10 @@
-// 1. Interfaz para un solo Driver
+export enum DriverStatus {
+  AVAILABLE = "AVAILABLE",       // Listo para ser asignado a un servicio.
+  ON_SERVICE = "ON_SERVICE",     // Ya está manejando un bus en un servicio actual.
+  OFF_DUTY = "OFF_DUTY",         // No está trabajando en este turno.
+  SICK_LEAVE = "SICK_LEAVE",     // De baja médica.
+}
+
 export interface DriverListItem {
   id: number;
   firstName: string;
@@ -9,9 +15,14 @@ export interface DriverListItem {
   createdAt: string; // ISO 8601 string - 
 }
 
-// 2. Interfaz para el objeto 'data' dentro de la respuesta de la API de lista de drivers
-export interface DriversListData {
-  drivers: DriverListItem[];
+export interface AvailableDriverRS {
+  id: number;
+  firstName: string;
+  lastName: string;
+}
+
+export interface DriversListData<T> {
+  drivers: T[];
   currentPage: number;
   totalPages: number;
   totalItems: number;
@@ -62,9 +73,4 @@ export interface BulkDeleteResponseDTO {
   notFoundIds: number[];
 }
 
-export enum DriverStatus {
-  AVAILABLE = "AVAILABLE",
-  ON_SERVICE = "ON_SERVICE",
-  OFF_DUTY = "OFF_DUTY",
-  SICK_LEAVE = "SICK_LEAVE",
-}
+

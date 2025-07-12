@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/sidebar"
 import { Toaster } from "@/components/ui/sonner"
 import { navMainData } from "@/constants/sidebar"
+import { useAuth } from "@/hooks/useAuth"
 
 function getPageMetadata(pathname: string): { title: string; description?: string } {
   for (const item of navMainData) {
@@ -30,9 +31,18 @@ function getPageMetadata(pathname: string): { title: string; description?: strin
 export default function DashboardLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const loading = useAuth("/auth/login", ["ADMIN"]);
+  
   const pathname = usePathname()
   const { title: pageTitle, description: pageDescription } = getPageMetadata(pathname)
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-lg font-medium text-muted-foreground">Verificando sesión...</p>
+      </div>
+    );
+  }
   return (
     <SidebarProvider>
       <AppSidebar />

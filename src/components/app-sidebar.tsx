@@ -24,9 +24,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [user, setUser] = React.useState<AuthenticatedUser | null>(null)
 
   React.useEffect(() => {
-    const currentUser = getCurrentUser()
-    setUser(currentUser)
-  }, [])
+    const loadUser = () => {
+      const currentUser = getCurrentUser();
+      setUser(currentUser);
+    };
+
+    loadUser(); // carga inicial
+
+    // Escucha cambios en el localStorage (evento personalizado que se dispara)
+    const handleStorageChange = () => loadUser();
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
+
 
   const data = {
     user: {

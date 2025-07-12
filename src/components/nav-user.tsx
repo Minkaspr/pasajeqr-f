@@ -30,6 +30,7 @@ import {
 
 import { UserSettings } from "@/components/user-settings"
 import { useState } from "react"
+import { logoutUser } from "@/app/auth/auth"
 
 export function NavUser({
   user,
@@ -53,13 +54,9 @@ export function NavUser({
     return initials || "US"; // fallback si ambos son falsy
   }
 
-  const handleLogout = () => {
-    // ✅ Limpiar almacenamiento
-    localStorage.removeItem("token")
-    localStorage.removeItem("user")
-
-    // ✅ Redirigir al home
-    router.push("/")
+  const handleLogout = async () => {
+    await logoutUser(); 
+    router.push("/auth/login"); 
   }
 
   return (

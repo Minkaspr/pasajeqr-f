@@ -1,89 +1,133 @@
 import { ServiceStatus } from "@/types/service-status"
 import { z } from "zod"
 
-/**
- * Campo: ID numérico (para bus, driver, stops)
- */
-const idField = z
-  .number({
-    required_error: "Este campo es obligatorio",
-    invalid_type_error: "Debe ser un número",
-  })
-  .int("Debe ser un número entero")
-  .positive("Debe ser mayor que 0")
-
-/**
- * Campo: Código del servicio
- */
-const codeField = z
-  .string({
-    required_error: "El código del servicio es obligatorio",
-    invalid_type_error: "Debe ser una cadena de texto",
-  })
-  .min(1, "El código del servicio es obligatorio")
-  .max(20, "El código no puede tener más de 20 caracteres")
-
-/**
- * Campo: Fecha (formato YYYY-MM-DD)
- */
-const dateField = z
-  .string({
-    required_error: "La fecha es obligatoria",
-    invalid_type_error: "Debe ser una cadena de texto con formato de fecha",
-  })
-  .refine(
-    (val) => /^\d{4}-\d{2}-\d{2}$/.test(val),
-    "Debe tener el formato YYYY-MM-DD"
+// Helpers
+const createRequiredId = (fieldName: string) =>
+  z.preprocess(
+    (val) => {
+      if (val === "" || val === null || val === undefined) return null
+      if (typeof val === "string") {
+        const num = Number.parseInt(val)
+        return isNaN(num) ? null : num
+      }
+      return val
+    },
+    z
+      .number({
+        required_error: `${fieldName} es obligatorio`,
+        invalid_type_error: `${fieldName} es obligatorio`,
+      })
+      .positive(`${fieldName} debe ser válido`),
   )
 
-/**
- * Campo: Hora (formato HH:mm)
- */
-const timeField = z
-  .string({
-    required_error: "La hora es obligatoria",
-    invalid_type_error: "Debe ser una cadena de texto con formato de hora",
+const createRequiredDate = (fieldName: string) =>
+  z
+    .string({
+      required_error: `${fieldName} es obligatoria`,
+      invalid_type_error: `${fieldName} es obligatoria`,
+    })
+    .min(1, `${fieldName} es obligatoria`)
+    .regex(/^\d{4}-\d{2}-\d{2}$/, `${fieldName} debe tener formato válido`)
+
+const createRequiredTime = (fieldName: string) =>
+  z
+    .string({
+      required_error: `${fieldName} es obligatoria`,
+      invalid_type_error: `${fieldName} es obligatoria`,
+    })
+    .min(1, `${fieldName} es obligatoria`)
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/, `${fieldName} debe tener formato HH:mm`)
+
+const createOptionalDate = (fieldName: string) =>
+  z
+    .string()
+    .optional()
+    .refine((val) => {
+      if (!val || val === "") return true
+      return /^\d{4}-\d{2}-\d{2}$/.test(val)
+    }, `${fieldName} debe tener formato válido`)
+
+const createOptionalTime = (fieldName: string) =>
+  z
+    .string()
+    .optional()
+    .refine((val) => {
+      if (!val || val === "") return true
+      return /^([01]\d|2[0-3]):[0-5]\d$/.test(val)
+    }, `${fieldName} debe tener formato HH:mm`)
+
+// 🔁 Validaciones personalizadas comunes
+const validateTripRules = (data: TripBase, ctx: z.RefinementCtx) => {
+  const now = new Date()
+  const departure = new Date(`${data.departureDate}T${data.departureTime}`)
+
+  if (departure < now) {
+    ctx.addIssue({
+      path: ["departureTime"],
+      message: "La fecha y hora de salida no pueden ser en el pasado",
+      code: z.ZodIssueCode.custom,
+    })
+  }
+
+  if (data.arrivalDate && !data.arrivalTime) {
+    ctx.addIssue({
+      path: ["arrivalTime"],
+      message: "Si ingresas fecha de llegada, la hora es obligatoria",
+      code: z.ZodIssueCode.custom,
+    })
+  }
+
+  if (data.arrivalTime && !data.arrivalDate) {
+    ctx.addIssue({
+      path: ["arrivalDate"],
+      message: "Si ingresas hora de llegada, la fecha es obligatoria",
+      code: z.ZodIssueCode.custom,
+    })
+  }
+
+  if (data.arrivalDate && data.arrivalTime) {
+    const arrival = new Date(`${data.arrivalDate}T${data.arrivalTime}`)
+    if (arrival <= departure) {
+      ctx.addIssue({
+        path: ["arrivalTime"],
+        message: "La llegada debe ser posterior a la salida",
+        code: z.ZodIssueCode.custom,
+      })
+    }
+  }
+}
+
+// 🧱 Schema base reutilizable
+const tripBaseSchema = z.object({
+  busId: createRequiredId("Bus"),
+  driverId: createRequiredId("Conductor"),
+  originStopId: createRequiredId("Paradero de origen"),
+  destinationStopId: createRequiredId("Paradero de destino"),
+  departureDate: createRequiredDate("Fecha de salida"),
+  departureTime: createRequiredTime("Hora de salida"),
+  arrivalDate: createOptionalDate("Fecha de llegada"),
+  arrivalTime: createOptionalTime("Hora de llegada"),
+  status: z.nativeEnum(ServiceStatus, {
+    required_error: "Estado es obligatorio",
+  }),
+})
+
+type TripBase = z.infer<typeof tripBaseSchema>
+
+// 📦 Schema para creación
+export const tripCreateSchema = tripBaseSchema.superRefine(validateTripRules)
+
+// ✏️ Schema para actualización (agrega campo `code`)
+export const tripUpdateSchema = tripBaseSchema
+  .extend({
+    code: z
+      .string({
+        required_error: "Código es obligatorio",
+      })
+      .min(1, "Código es obligatorio"),
   })
-  .refine(
-    (val) => /^([01]\d|2[0-3]):[0-5]\d$/.test(val),
-    "Debe tener el formato HH:mm"
-  )
+  .superRefine(validateTripRules)
 
-/**
- * Campo: Estado del servicio (string enum)
- */
-const serviceStatusValues = Object.values(ServiceStatus) as [string, ...string[]]
-
-export const serviceStatusEnum = z.enum(serviceStatusValues, {
-  required_error: "El estado del servicio es obligatorio",
-})
-
-export const tripCreateSchema = z.object({
-  code: codeField,
-  busId: idField,
-  driverId: idField,
-  originStopId: idField,
-  destinationStopId: idField,
-  departureDate: dateField,
-  departureTime: timeField,
-  arrivalDate: dateField.optional(),
-  arrivalTime: timeField.optional(),
-  status: serviceStatusEnum,
-})
-
+// 🧾 Tipos exportados (como pediste)
 export type TripCreateRQ = z.infer<typeof tripCreateSchema>
-
-export const tripUpdateSchema = z.object({
-  code: codeField,
-  busId: idField,
-  driverId: idField,
-  originStopId: idField,
-  destinationStopId: idField,
-  departureDate: dateField,
-  departureTime: timeField,
-  arrivalDate: dateField.optional(),
-  arrivalTime: timeField.optional(),
-  status: serviceStatusEnum,
-})
-
 export type TripUpdateRQ = z.infer<typeof tripUpdateSchema>
