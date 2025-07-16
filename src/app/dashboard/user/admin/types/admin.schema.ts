@@ -34,3 +34,16 @@ export const adminProfileUpdateSchema = z.object({
 });
 
 export type AdminProfileUpdateRQ = z.infer<typeof adminProfileUpdateSchema>;
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(8, "La contraseña actual es obligatoria"),
+    newPassword: passwordField,
+    confirmPassword: z.string().min(8, "Confirma tu nueva contraseña"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Las contraseñas no coinciden",
+    path: ["confirmPassword"],
+  });
+
+export type ChangePasswordForm = z.infer<typeof changePasswordSchema>; 

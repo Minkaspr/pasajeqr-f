@@ -52,7 +52,13 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
       }
     } catch (error) {
       console.error("Error al hacer login:", error);
-      setServerError("Error de conexión con el servidor");
+      const apiError = error as { status: number; message: string; errors?: Record<string, string> };
+
+      if (apiError.status === 401) {
+        setServerError(apiError.errors?.error || apiError.message || "Credenciales incorrectas");
+      } else {
+        setServerError(apiError.message || "Error desconocido");
+      }
     }
   };
 

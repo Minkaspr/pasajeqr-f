@@ -23,5 +23,6 @@ export interface StopsRS {
 export interface StopDetailRS {
   id: number;
   name: string;
+  terminal: boolean;
   createdAt: string; // ISO string
 }

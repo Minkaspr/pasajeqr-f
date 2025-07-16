@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input"
 import { createStop, getStopById, updateStop } from "../lib/api"
 import { FieldError } from "@/components/field-error"
 import { stopUpdateSchema, stopCreateSchema, StopUpdateRQ, StopCreateRQ } from "../types/stop.schemas"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 
 interface StopDialogProps {
   stopId: number | null
@@ -17,6 +19,7 @@ export function StopDialog({ stopId, isOpen, onClose, onSuccess }: StopDialogPro
   const isEdit = stopId !== null
 
   const [name, setName] = useState("")
+  const [terminal, setTerminal] = useState(false)
   const [touched, setTouched] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -24,7 +27,7 @@ export function StopDialog({ stopId, isOpen, onClose, onSuccess }: StopDialogPro
 
   const validate = useCallback(() => {
     const schema = isEdit ? stopUpdateSchema : stopCreateSchema
-    const result = schema.safeParse({ name })
+    const result = schema.safeParse({ name, terminal})
 
     if (!result.success) {
       const msg = result.error.flatten().fieldErrors.name?.[0] || ""
@@ -34,7 +37,7 @@ export function StopDialog({ stopId, isOpen, onClose, onSuccess }: StopDialogPro
 
     setError("")
     return true
-  }, [name, isEdit])
+  }, [isEdit, name, terminal])
 
   useEffect(() => {
     if (!stopId) return
@@ -43,6 +46,7 @@ export function StopDialog({ stopId, isOpen, onClose, onSuccess }: StopDialogPro
       .then((res) => {
         if (res.data) {
           setName(res.data.name)
+          setTerminal(res.data.terminal)
         }
       })
       .catch((err) => {
@@ -53,6 +57,7 @@ export function StopDialog({ stopId, isOpen, onClose, onSuccess }: StopDialogPro
 
   useEffect(() => {
     if (!isOpen) {
+      setTerminal(false);
       setName("")
       setTouched(false)
       setError("")
@@ -73,10 +78,12 @@ export function StopDialog({ stopId, isOpen, onClose, onSuccess }: StopDialogPro
     try {
       setLoading(true)
       if (isEdit) {
-        const payload: StopUpdateRQ = { name }
+        const payload: StopUpdateRQ = { name, terminal }
+         console.log("📦 Payload para update:", JSON.stringify(payload, null, 2))
         await updateStop(stopId!, payload)
       } else {
-        const payload: StopCreateRQ = { name }
+        const payload: StopCreateRQ = { name, terminal }
+         console.log("📦 Payload para create:", JSON.stringify(payload, null, 2))
         await createStop(payload)
       }
 
@@ -107,6 +114,17 @@ export function StopDialog({ stopId, isOpen, onClose, onSuccess }: StopDialogPro
             className={error ? "border-red-500 focus-visible:ring-red-500/40" : ""}
           />
           <FieldError show={!!error} message={error} />
+
+          {/* Switch para terminal */}
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="terminal"
+              checked={terminal}
+              onCheckedChange={setTerminal}
+              disabled={loading}
+            />
+            <Label htmlFor="terminal">¿Es un terminal?</Label>
+          </div>
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" onClick={onClose} disabled={loading}>

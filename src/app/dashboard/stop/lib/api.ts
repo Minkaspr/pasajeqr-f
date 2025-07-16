@@ -31,6 +31,27 @@ export async function getStopsPaged(
 }
 
 /**
+ * Obtener paraderos terminales paginados
+ */
+export async function getTerminalStopsPaged(
+  page = 0,
+  size = 10
+): Promise<ApiResponse<StopsRS>> {
+  const params = new URLSearchParams();
+  params.append("page", page.toString());
+  params.append("size", size.toString());
+
+  const res = await fetch(`${BASE_URL}/terminals?${params.toString()}`);
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`Error al obtener terminales: ${res.status} - ${errorText}`);
+  }
+
+  const data = await res.json();
+  return data;
+}
+
+/**
  * Obtener un paradero por ID
  */
 export async function getStopById(id: number): Promise<ApiResponse<StopDetailRS>> {
