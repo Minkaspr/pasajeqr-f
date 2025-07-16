@@ -1,22 +1,24 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { ArrowLeft, User, Lock, Save, X } from "lucide-react"
+import { ArrowLeft, User, Lock, Save, X, Eye, EyeOff } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { AdminProfileUpdateRQ, adminProfileUpdateSchema } from "@/app/dashboard/user/admin/types/admin.schema"
-import { getAdminProfile, updateAdminProfile } from "@/app/dashboard/user/admin/lib/api"
+import { AdminProfileUpdateRQ, adminProfileUpdateSchema, ChangePasswordForm, changePasswordSchema } from "@/app/dashboard/user/admin/types/admin.schema"
+import { changeAdminPassword, getAdminProfile, updateAdminProfile } from "@/app/dashboard/user/admin/lib/api"
 import { ensureAuth } from "@/lib/token"
 import router from "next/router"
+import { cn } from "@/lib/utils"
 
 type View = "main" | "profile" | "password"
 
 interface UserSettingsProps {
   user: {
+    id: number
     firstName: string
     lastName: string
     email: string
@@ -42,11 +44,19 @@ export function UserSettings({ user, open, onOpenChange }: UserSettingsProps) {
   const [loading, setLoading] = useState(false);
 
   // Estados para el formulario de contraseña
-  const [passwordData, setPasswordData] = useState({
+  const [passwordData, setPasswordData] = useState<ChangePasswordForm>({
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   })
+
+  const [passwordErrors, setPasswordErrors] = useState<Partial<Record<keyof ChangePasswordForm, string>>>({});
+  const [passwordTouched, setPasswordTouched] = useState<Partial<Record<keyof ChangePasswordForm, boolean>>>({});
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
 
   useEffect(() => {
     if (!open) return;
@@ -117,10 +127,10 @@ export function UserSettings({ user, open, onOpenChange }: UserSettingsProps) {
     }
   }
 
-
   const handleClose = () => {
     setCurrentView("main");
     onOpenChange(false);
+    // Limpiar formulario de perfil
     setProfileData({
       firstName: "",
       lastName: "",
@@ -128,19 +138,53 @@ export function UserSettings({ user, open, onOpenChange }: UserSettingsProps) {
     });
     setErrors({});
     setTouched({});
+
+    // Limpiar formulario de contraseña
+    setPasswordData({
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
+    setPasswordErrors({});
+    setPasswordTouched({});
   };
 
-  const handleSavePassword = () => {
-    // Validar que las contraseñas coincidan
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert("Las contraseñas nuevas no coinciden")
-      return
+  async function handleSavePassword() {
+    setPasswordTouched({
+      currentPassword: true,
+      newPassword: true,
+      confirmPassword: true,
+    });
+
+    const isValid = validatePassword();
+    if (!isValid) return;
+
+    const authOk = await ensureAuth();
+    if (!authOk) {
+      router.replace("/login");
+      return;
+
     }
 
-    // Aquí implementarías la lógica para cambiar la contraseña
-    console.log("Cambiando contraseña")
-    // Simular cambio exitoso
-    handleClose()
+    try {
+      setPasswordLoading(true);
+      const { currentPassword, newPassword } = passwordData;
+
+      // Aquí va la llamada a la API para cambiar la contraseña
+      // await changePassword({ currentPassword, newPassword });
+      await changeAdminPassword(user.id, {
+        currentPassword,
+        newPassword,
+      });
+
+      console.log("Simulación: contraseña cambiada exitosamente");
+      handleClose(); // cerrar modal si todo fue bien
+    } catch (error) {
+      console.error("❌ Error al cambiar la contraseña:", error);
+      // Aquí podrías usar toast o mostrar un error general
+    } finally {
+      setPasswordLoading(false);
+    }
   }
 
   const handleCancel = () => {
@@ -149,6 +193,32 @@ export function UserSettings({ user, open, onOpenChange }: UserSettingsProps) {
     } else {
       setCurrentView("main")
     }
+  }
+
+  function validatePassword(): boolean {
+    const result = changePasswordSchema.safeParse(passwordData);
+    if (!result.success) {
+      const fieldErrors = result.error.flatten().fieldErrors;
+      setPasswordErrors({
+        currentPassword: fieldErrors.currentPassword?.[0],
+        newPassword: fieldErrors.newPassword?.[0],
+        confirmPassword: fieldErrors.confirmPassword?.[0],
+      });
+      return false;
+    }
+    setPasswordErrors({});
+    return true;
+  }
+
+  function resetPasswordForm() {
+    setPasswordData({
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
+    setPasswordErrors({});
+    setPasswordTouched({});
+    setPasswordLoading(false);
   }
 
   function getInitials(firstName?: string, lastName?: string): string {
@@ -285,7 +355,11 @@ export function UserSettings({ user, open, onOpenChange }: UserSettingsProps) {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center space-x-3">
-        <Button variant="ghost" size="icon" onClick={() => setCurrentView("main")}>
+        <Button variant="ghost" size="icon" 
+        onClick={() => {
+          resetPasswordForm();
+          setCurrentView("main");
+        }}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <h3 className="text-lg font-semibold">Cambiar Contraseña</h3>
@@ -295,77 +369,145 @@ export function UserSettings({ user, open, onOpenChange }: UserSettingsProps) {
 
       {/* Formulario */}
       <div className="space-y-4">
+        {/* Contraseña actual */}
         <div className="space-y-2">
           <Label htmlFor="currentPassword">Contraseña Actual</Label>
-          <Input
-            id="currentPassword"
-            type="password"
-            value={passwordData.currentPassword}
-            onChange={(e) =>
-              setPasswordData((prev) => ({
-                ...prev,
-                currentPassword: e.target.value,
-              }))
-            }
-            placeholder="Ingresa tu contraseña actual"
-          />
+          <div className="relative">
+            <Input
+              id="currentPassword"
+              type={showCurrentPassword ? "text" : "password"}
+              value={passwordData.currentPassword}
+              onChange={(e) => {
+                setPasswordData((prev) => ({ ...prev, currentPassword: e.target.value }));
+                setPasswordTouched((prev) => ({ ...prev, currentPassword: true }));
+                validatePassword();
+              }}
+              onBlur={() => {
+                setPasswordTouched((prev) => ({ ...prev, currentPassword: true }));
+                validatePassword();
+              }}
+              placeholder="Ingresa tu contraseña actual"
+              className={cn(
+                passwordTouched.currentPassword && passwordErrors.currentPassword &&
+                "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/40"
+              )}
+            />
+            <button
+              type="button"
+              onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+              className="absolute inset-y-0 right-2 flex items-center text-muted-foreground hover:text-primary focus:outline-none"
+              tabIndex={-1}
+            >
+              {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+          {passwordTouched.currentPassword && passwordErrors.currentPassword && (
+            <p className="text-sm text-red-500">{passwordErrors.currentPassword}</p>
+          )}
         </div>
 
+        {/* Nueva contraseña */}
         <div className="space-y-2">
           <Label htmlFor="newPassword">Nueva Contraseña</Label>
-          <Input
-            id="newPassword"
-            type="password"
-            value={passwordData.newPassword}
-            onChange={(e) =>
-              setPasswordData((prev) => ({
-                ...prev,
-                newPassword: e.target.value,
-              }))
-            }
-            placeholder="Ingresa tu nueva contraseña"
-          />
+          <div className="relative">
+            <Input
+              id="newPassword"
+              type={showNewPassword ? "text" : "password"}
+              value={passwordData.newPassword}
+              onChange={(e) => {
+                setPasswordData((prev) => ({ ...prev, newPassword: e.target.value }));
+                setPasswordTouched((prev) => ({ ...prev, newPassword: true }));
+                validatePassword();
+              }}
+              onBlur={() => {
+                setPasswordTouched((prev) => ({ ...prev, newPassword: true }));
+                validatePassword();
+              }}
+              placeholder="Ingresa tu nueva contraseña"
+              className={cn(
+                passwordTouched.newPassword && passwordErrors.newPassword &&
+                "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/40"
+              )}
+            />
+            <button
+              type="button"
+              onClick={() => setShowNewPassword(!showNewPassword)}
+              className="absolute inset-y-0 right-2 flex items-center text-muted-foreground hover:text-primary focus:outline-none"
+              tabIndex={-1}
+            >
+              {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+          {passwordTouched.newPassword && passwordErrors.newPassword && (
+            <p className="text-sm text-red-500">{passwordErrors.newPassword}</p>
+          )}
         </div>
 
+        {/* Confirmar contraseña */}
         <div className="space-y-2">
           <Label htmlFor="confirmPassword">Confirmar Nueva Contraseña</Label>
-          <Input
-            id="confirmPassword"
-            type="password"
-            value={passwordData.confirmPassword}
-            onChange={(e) =>
-              setPasswordData((prev) => ({
-                ...prev,
-                confirmPassword: e.target.value,
-              }))
-            }
-            placeholder="Confirma tu nueva contraseña"
-          />
+          <div className="relative">
+            <Input
+              id="confirmPassword"
+              type={showConfirmPassword ? "text" : "password"}
+              value={passwordData.confirmPassword}
+              onChange={(e) => {
+                setPasswordData((prev) => ({ ...prev, confirmPassword: e.target.value }));
+                setPasswordTouched((prev) => ({ ...prev, confirmPassword: true }));
+                validatePassword();
+              }}
+              onBlur={() => {
+                setPasswordTouched((prev) => ({ ...prev, confirmPassword: true }));
+                validatePassword();
+              }}
+              placeholder="Confirma tu nueva contraseña"
+              className={cn(
+                passwordTouched.confirmPassword && passwordErrors.confirmPassword &&
+                "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/40"
+              )}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute inset-y-0 right-2 flex items-center text-muted-foreground hover:text-primary focus:outline-none"
+              tabIndex={-1}
+            >
+              {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+          {passwordTouched.confirmPassword && passwordErrors.confirmPassword && (
+            <p className="text-sm text-red-500">{passwordErrors.confirmPassword}</p>
+          )}
         </div>
       </div>
 
       {/* Botones */}
       <div className="flex space-x-3 pt-4">
-        <Button onClick={handleSavePassword} className="flex-1">
+        <Button onClick={handleSavePassword} className="flex-1" disabled={passwordLoading}>
           <Save className="mr-2 h-4 w-4" />
-          Guardar
+          {passwordLoading ? "Guardando..." : "Guardar"}
         </Button>
-        <Button variant="outline" onClick={handleCancel} className="flex-1">
+        <Button variant="outline" onClick={handleCancel} className="flex-1" disabled={passwordLoading}>
           <X className="mr-2 h-4 w-4" />
           Cancelar
         </Button>
       </div>
     </div>
-  )
+  );
+
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (!isOpen) {
+        handleClose();
+      } else {
+        onOpenChange(true); 
+      }
+    }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
             {currentView === "main" && "Configuración de Usuario"}
-            {currentView === "profile" && "Editar Perfil"}
-            {currentView === "password" && "Cambiar Contraseña"}
           </DialogTitle>
         </DialogHeader>
 

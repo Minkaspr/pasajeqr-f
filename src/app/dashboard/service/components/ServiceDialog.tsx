@@ -25,7 +25,7 @@ import { toast } from "sonner"
 
 import { getBusesPaged } from "../../bus/lib/api"
 import { BusItemRS, BusStatus } from "../../bus/types/bus"
-import { getStopsPaged } from "../../stop/lib/api"
+import { getTerminalStopsPaged } from "../../stop/lib/api"
 import { StopItemRS } from "../../stop/types/stop"
 import { getAvailableDrivers } from "../../user/driver/lib/api"
 import { AvailableDriverRS } from "@/types/driver"
@@ -170,7 +170,7 @@ export function ServiceDialog({ serviceId, isOpen, onClose, onSuccess }: Service
         const [{ data: busData }, driverData, { data: stopData }] = await Promise.all([
           getBusesPaged(0, 100),
           getAvailableDrivers(0, 100),
-          getStopsPaged(0, 100),
+          getTerminalStopsPaged(0, 100),
         ])
 
         setBuses(busData?.buses ?? [])

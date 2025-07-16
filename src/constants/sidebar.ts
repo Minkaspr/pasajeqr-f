@@ -4,14 +4,20 @@ import {
   BadgeDollarSign,
   QrCode,
   Wallet,
-
   Users,
-  Truck 
+  Truck, 
+  LayoutDashboard
 } from "lucide-react"
 
 export const titleNavMain = "Panel de Gestión"
 
 export const navMainData = [
+  {
+    title: "Dashboard",
+    url: "/dashboard",
+    icon: LayoutDashboard,
+    description: "Monitoreo en tiempo real del sistema de transporte",
+  },
   {
     title: "Usuarios",
     url: "#",
