@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useRouter } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowLeft, User, Lock, Settings, Mail, LogOut } from "lucide-react"
 
@@ -34,6 +35,7 @@ export default function PassengerSettings({
     lastName: user.lastName,
   })
 
+  
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -42,6 +44,7 @@ export default function PassengerSettings({
 
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false)
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
+
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -77,7 +80,9 @@ export default function PassengerSettings({
     setIsUpdatingPassword(false)
   }
 
+  const router = useRouter()
   const handleLogout = () => {
+    router.push("/")
     onLogout?.()
   }
 
