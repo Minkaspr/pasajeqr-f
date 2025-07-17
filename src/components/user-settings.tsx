@@ -163,6 +163,7 @@ export function UserSettings({ user, open, onOpenChange }: UserSettingsProps) {
     if (!authOk) {
       router.replace("/login");
       return;
+
     }
 
     try {
