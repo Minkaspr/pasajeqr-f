@@ -24,10 +24,6 @@ export default function DashboardPage() {
 
     fetchStats()
   }, [])
-  const passengerGrowth = stats?.passengerGrowth ?? 0
-  const driverGrowth = stats?.driverGrowth ?? 0
-  const vehicleGrowth = stats?.vehicleGrowth ?? 0;
-  const stopGrowth = stats?.stopGrowth ?? 0;
 
   return (
     <div className="h-full p-2 md:p-4 lg:p-6">
@@ -44,20 +40,7 @@ export default function DashboardPage() {
                 {stats?.totalPassengers.toLocaleString()}
               </div>
               <p className="text-xs text-slate-500">
-                {stats?.todayPassengers ?? 0} registrados hoy,&nbsp;
-              </p>
-              <p>
-                {passengerGrowth > 0 ? (
-                  <span className="text-green-600 font-medium">
-                    {passengerGrowth.toFixed(1)}% más que ayer
-                  </span>
-                ) : passengerGrowth < 0 ? (
-                  <span className="text-red-600 font-medium">
-                    {Math.abs(passengerGrowth).toFixed(1)}% menos que ayer
-                  </span>
-                ) : (
-                  <span className="text-slate-500 font-medium">igual que ayer</span>
-                )}
+                {stats?.todayPassengers ?? 0} registrados hoy.&nbsp;
               </p>
             </CardContent>
           </Card>
@@ -70,20 +53,7 @@ export default function DashboardPage() {
             <CardContent>
               <div className="text-2xl font-bold text-slate-900">{stats?.totalDrivers.toLocaleString()}</div>
               <p className="text-xs text-slate-500">
-                {stats?.todayDrivers ?? 0} registrados hoy,&nbsp;
-              </p>
-              <p>
-                {driverGrowth > 0 ? (
-                  <span className="text-green-600 font-medium">
-                    {driverGrowth.toFixed(1)}% más que ayer
-                  </span>
-                ) : driverGrowth < 0 ? (
-                  <span className="text-red-600 font-medium">
-                    {Math.abs(driverGrowth).toFixed(1)}% menos que ayer
-                  </span>
-                ) : (
-                  <span className="text-slate-500 font-medium">igual que ayer</span>
-                )}
+                {stats?.todayDrivers ?? 0} registrados hoy.&nbsp;
               </p>
             </CardContent>
           </Card>
@@ -98,21 +68,9 @@ export default function DashboardPage() {
                 {stats?.totalVehicles.toLocaleString()}
               </div>
               <p className="text-xs text-slate-500">
-                {stats?.todayVehicles ?? 0} registrados hoy,&nbsp;
+                {stats?.todayVehicles ?? 0} registrados hoy.&nbsp;
               </p>
-              <p>
-                {vehicleGrowth > 0 ? (
-                  <span className="text-green-600 font-medium">
-                    {vehicleGrowth.toFixed(1)}% más que ayer
-                  </span>
-                ) : vehicleGrowth < 0 ? (
-                  <span className="text-red-600 font-medium">
-                    {Math.abs(vehicleGrowth).toFixed(1)}% menos que ayer
-                  </span>
-                ) : (
-                  <span className="text-slate-500 font-medium">igual que ayer</span>
-                )}
-              </p>
+              
             </CardContent>
           </Card>
 
@@ -126,21 +84,9 @@ export default function DashboardPage() {
                 {stats?.totalStops.toLocaleString()}
               </div>
               <p className="text-xs text-slate-500">
-                {stats?.todayStops ?? 0} registrados hoy,&nbsp;
+                {stats?.todayStops ?? 0} registrados hoy.&nbsp;
               </p>
-              <p>
-                {stopGrowth > 0 ? (
-                  <span className="text-green-600 font-medium">
-                    {stopGrowth.toFixed(1)}% más que ayer
-                  </span>
-                ) : stopGrowth < 0 ? (
-                  <span className="text-red-600 font-medium">
-                    {Math.abs(stopGrowth).toFixed(1)}% menos que ayer
-                  </span>
-                ) : (
-                  <span className="text-slate-500 font-medium">igual que ayer</span>
-                )}
-              </p>
+              
             </CardContent>
           </Card>
         </div>
