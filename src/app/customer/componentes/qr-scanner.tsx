@@ -113,7 +113,7 @@ export default function QrScanner({ onBackClick, onScanSuccess}: QrScannerProps)
     }
   }, [scannerInstance])
 
-  const handleScanSuccess = (decodedText: string) => {
+  const handleScanSuccess = async (decodedText: string) => {
     try {
       if (hasScannedRef.current) return
       hasScannedRef.current = true
@@ -137,7 +137,7 @@ export default function QrScanner({ onBackClick, onScanSuccess}: QrScannerProps)
       console.error("Error interno en handleScanSuccess", err)
     }
   }
-
+  
   const validateScannedQr = async (decodedText: string) => {
     const token = extractTokenFromUrl(decodedText)
 
@@ -184,8 +184,6 @@ export default function QrScanner({ onBackClick, onScanSuccess}: QrScannerProps)
       setIsValidating(false)
     }
   }
-
-
 
   function extractTokenFromUrl(qrText: string): string | null {
     try {
@@ -590,6 +588,7 @@ export default function QrScanner({ onBackClick, onScanSuccess}: QrScannerProps)
                 Ir al formulario
               </Button>
             )}
+
             <Button variant="outline" onClick={() => handleDialogOpenChange(false)}>
               Cancelar
             </Button>

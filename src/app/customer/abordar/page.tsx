@@ -1,3 +1,4 @@
+
 "use client"
 
 import { getStopsPaged } from "@/app/dashboard/stop/lib/api"
@@ -311,4 +312,5 @@ export default function AbordarPage() {
       </div>
     </div>
   )
+
 }
