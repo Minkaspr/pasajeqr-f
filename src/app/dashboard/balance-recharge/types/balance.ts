@@ -5,6 +5,11 @@ export interface RechargeRQ {
   description?: string;
 }
 
+export interface FarePaymentRQ {
+  amount: number
+  description: string
+}
+
 export interface BalanceTransactionDetailRS {
   id: number;
   userId: number;

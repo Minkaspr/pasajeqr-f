@@ -18,8 +18,6 @@ import {
 import {
   QrCode,
   Camera,
-  ExternalLink,
-  Copy,
   CheckCircle2,
   AlertCircle,
   Settings,
@@ -28,6 +26,9 @@ import {
   Loader2,
   X,
   ArrowLeft,
+  BusFront,
+  LucideIcon,
+  Ban,
 } from "lucide-react"
 import {
   AlertDialog,
@@ -39,10 +40,10 @@ import {
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
-import router from "next/router"
+import { useRouter } from "next/navigation" // ✅ CORRECTO
 import { validateTripQrToken } from "../api"
 
-type ScannerStatus = "ready" | "requesting_permissions" | "permissions_denied" | "scanning" | "qr_detected" | "error"
+type ScannerStatus = "ready" | "requesting_permissions" | "permissions_denied" | "scanning" | "qr_detected" | "error" | "success"
 
 interface CameraDevice {
   id: string
@@ -56,7 +57,6 @@ interface QrScannerProps {
 }
 
 export default function QrScanner({ onBackClick, onScanSuccess}: QrScannerProps) {
-  const [scannedResult, setScannedResult] = useState<string | null>(null)
   const [status, setStatus] = useState<ScannerStatus>("ready")
   const [cameras, setCameras] = useState<CameraDevice[]>([])
   const [selectedCamera, setSelectedCamera] = useState<string>("")
@@ -66,7 +66,20 @@ export default function QrScanner({ onBackClick, onScanSuccess}: QrScannerProps)
 
   const hasScannedRef = useRef(false)
   const [isRescanning, setIsRescanning] = useState(false)
+  const [isValidating, setIsValidating] = useState<boolean>(false)
+  const [scanFeedback, setScanFeedback] = useState<{
+    icon: LucideIcon
+    label: string
+    status: "valid" | "invalid"
+    data?: {
+      tripId: number
+      tripCode: string
+      status: string
+    }
+  } | null>(null)
 
+  const router = useRouter()
+  
   useEffect(() => {
     Html5Qrcode.getCameras()
       .then((devices) => {
@@ -100,23 +113,12 @@ export default function QrScanner({ onBackClick, onScanSuccess}: QrScannerProps)
     }
   }, [scannerInstance])
 
-  const handleScanSuccess = async (decodedText: string) => {
+  const handleScanSuccess = (decodedText: string) => {
     try {
       if (hasScannedRef.current) return
       hasScannedRef.current = true
       setIsRescanning(false)
-      const token = extractTokenFromUrl(decodedText)
-      if (!token) {
-        toast.error("Código QR inválido o sin token")
-        setStatus("error")
-        return
-      }
-      // Validar token
-      const response = await validateTripQrToken(token)
-      const tripInfo = response.data
-      console.log("Trip validado:", tripInfo)
-
-      setScannedResult(decodedText)
+      setIsValidating(true)
       setShowResultDialog(true)
       setStatus("qr_detected")
 
@@ -130,17 +132,66 @@ export default function QrScanner({ onBackClick, onScanSuccess}: QrScannerProps)
 
       toast.success("Código QR detectado correctamente")
       onScanSuccess?.(decodedText)
+      validateScannedQr(decodedText)
     } catch (err) {
       console.error("Error interno en handleScanSuccess", err)
     }
   }
+
+  const validateScannedQr = async (decodedText: string) => {
+    const token = extractTokenFromUrl(decodedText)
+
+    if (!token) {
+      toast.error("Código QR inválido o sin token")
+      setStatus("error")
+      return
+    }
+
+    try {
+      toast.loading("Verificando QR...", { id: "qr-validation" })
+      const response = await validateTripQrToken(token)
+      const tripInfo = response.data
+
+      console.log("Trip validado:", tripInfo)
+
+      if (tripInfo) {
+        setScanFeedback({
+          icon: BusFront,
+          label: "Viaje válido",
+          status: "valid",
+          data: {
+            tripId: tripInfo.tripId,
+            tripCode: tripInfo.tripCode,
+            status: tripInfo.status,
+          },
+        });
+      } else {
+        toast.error("La validación del QR no devolvió datos válidos");
+      }
+
+      setShowResultDialog(true) 
+      toast.success("QR válido", { id: "qr-validation" })
+    } catch (err) {
+      console.error("Error al validar QR:", err)
+      toast.error("QR inválido o expirado", { id: "qr-validation" })
+      setStatus("error")
+      setScanFeedback({
+        icon: Ban,
+        label: "QR inválido",
+        status: "invalid",
+      })
+    } finally {
+      setIsValidating(false)
+    }
+  }
+
+
 
   function extractTokenFromUrl(qrText: string): string | null {
     try {
       const url = new URL(qrText)
       return url.searchParams.get("token")
     } catch {
-      // Si no es una URL válida
       return null
     }
   }
@@ -250,22 +301,6 @@ export default function QrScanner({ onBackClick, onScanSuccess}: QrScannerProps)
     }
   }
 
-  const getResultType = (text: string) => {
-    if (text.startsWith("http://") || text.startsWith("https://")) {
-      return { type: "url", label: "Enlace Web", icon: ExternalLink }
-    }
-    if (text.startsWith("mailto:")) {
-      return { type: "email", label: "Correo Electrónico", icon: ExternalLink }
-    }
-    if (text.startsWith("tel:")) {
-      return { type: "phone", label: "Teléfono", icon: ExternalLink }
-    }
-    if (text.includes("@") && text.includes(".")) {
-      return { type: "email", label: "Correo Electrónico", icon: ExternalLink }
-    }
-    return { type: "text", label: "Código de Transporte", icon: Copy }
-  }
-
   const getStatusInfo = () => {
     switch (status) {
       case "ready":
@@ -313,7 +348,6 @@ export default function QrScanner({ onBackClick, onScanSuccess}: QrScannerProps)
     }
   }
 
-  const resultInfo = scannedResult ? getResultType(scannedResult) : null
   const statusInfo = getStatusInfo()
 
   return (
@@ -498,36 +532,64 @@ export default function QrScanner({ onBackClick, onScanSuccess}: QrScannerProps)
               <CheckCircle2 className="h-5 w-5 text-green-600" />
               ¡Código QR Detectado!
             </DialogTitle>
-            <DialogDescription>Se ha escaneado correctamente el código del vehículo:</DialogDescription>
+            <DialogDescription>
+              {isValidating
+                ? "Verificando QR, espere un momento..."
+                : scanFeedback?.status === "valid"
+                ? "Se ha escaneado correctamente el código del vehículo:"
+                : "El código QR no es válido o ha expirado."}
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Tipo de contenido */}
-            {resultInfo && (
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="gap-1">
-                  {React.createElement(resultInfo.icon, { className: "h-3 w-3" })}
-                  {resultInfo.label}
-                </Badge>
+            {isValidating ? (
+              <div className="p-4 bg-muted rounded-lg text-sm text-muted-foreground">
+                <span className="animate-pulse">Validando QR, por favor espere...</span>
+              </div>
+            ) : scanFeedback?.status === "valid" ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="gap-1">
+                    {React.createElement(scanFeedback.icon, { className: "h-3 w-3" })}
+                    {scanFeedback.label}
+                  </Badge>
+                </div>
+
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <span className="text-sm font-medium text-green-800">Viaje Registrado</span>
+                  </div>
+                  <p className="text-xs text-green-700">
+                    Puedes continuar para seleccionar tus paraderos y confirmar tu viaje. El costo será descontado al finalizar el proceso.
+                  </p>
+                </div>
+              </>
+            ) : (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                Código QR inválido o expirado.
               </div>
             )}
-
-            {/* Información del viaje */}
-            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-                <span className="text-sm font-medium text-green-800">Viaje Registrado</span>
-              </div>
-              <p className="text-xs text-green-700">
-                Puedes continuar para seleccionar tus paraderos y confirmar tu viaje. El costo será descontado al finalizar el proceso.
-              </p>
-            </div>
           </div>
 
           <DialogFooter className="gap-2">
-            <Button onClick={() => router.push(`/abordar`)} className="gap-2">
-              Ir al formulario
-            </Button>
+            {!isValidating && scanFeedback?.status === "valid" && (
+              <Button 
+                onClick={() => {
+                  if (!scanFeedback?.data) return null;
+                  const { tripId, tripCode, status } = scanFeedback.data;
+
+                  const params = new URLSearchParams({
+                    tripId: tripId.toString(),
+                    tripCode,
+                    status,
+                  }).toString();
+
+                  router.push(`/customer/abordar?${params}`);
+                }} className="gap-2">
+                Ir al formulario
+              </Button>
+            )}
             <Button variant="outline" onClick={() => handleDialogOpenChange(false)}>
               Cancelar
             </Button>

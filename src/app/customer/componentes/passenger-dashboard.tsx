@@ -85,9 +85,11 @@ export default function PassengerDashboard({
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
               <Clock className="h-5 w-5" />
-              Últimas Recargas
+              Últimos Movimientos
             </CardTitle>
-            <CardDescription className="text-sm">Historial de tus recargas más recientes</CardDescription>
+            <CardDescription className="text-sm">
+              Historial de recargas y pagos recientes
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3 sm:space-y-4">

@@ -15,6 +15,7 @@ export default function CustomerVew() {
 
 
   const [user, setUser] = useState<null | {
+    id: number
     firstName: string
     lastName: string
     email: string
@@ -29,6 +30,7 @@ export default function CustomerVew() {
     const id = parsedUser.id // o userId, asegúrate cómo lo guardas
 
     setUser({
+      id: parsedUser.id,
       firstName: parsedUser.firstName,
       lastName: parsedUser.lastName,
       email: parsedUser.email,
@@ -54,15 +56,13 @@ export default function CustomerVew() {
     }
   }, [])
 
-  const recharges = transactions
-    .filter((t) => t.type === "RECHARGE")
-    .map((t, index) => ({
-      id: String(index + 1),
-      amount: t.amount,
-      date: t.transactionDate.split("T")[0], // solo fecha
-      method: t.description ?? "Desconocido",
-      status: t.type === "RECHARGE" ? "Recarga" : "Pago",
-    }))
+  const allTransactions = transactions.map((t, index) => ({
+    id: String(index + 1),
+    amount: t.amount,
+    date: t.transactionDate.split("T")[0], // solo fecha
+    method: t.description ?? "Desconocido",
+    status: t.type === "RECHARGE" ? "Recarga" : "Pago",
+  }))
 
   const handleConfigClick = () => setCurrentView("settings")
   const handleQrClick = () => setCurrentView("scanner")
@@ -120,7 +120,7 @@ export default function CustomerVew() {
       return (
         <PassengerDashboard
           user={{ name: `${user.firstName} ${user.lastName}`, balance: user.balance }}
-          recharges={recharges}
+          recharges={allTransactions}
           onConfigClick={handleConfigClick}
           onQrClick={handleQrClick}
         />

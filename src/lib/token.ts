@@ -35,7 +35,7 @@ export async function ensureAuth(): Promise<boolean> {
   const refreshToken = getRefreshToken();
 
   if (!token || !refreshToken) {
-    return false; // No hay forma de autenticarse
+    return false; 
   }
 
   if (isTokenExpired()) {

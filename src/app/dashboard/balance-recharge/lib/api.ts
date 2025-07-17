@@ -1,6 +1,6 @@
 import type { ApiResponse } from '@/types/api-response';
 import { PassengerLookupRS } from '../types/passenger';
-import { BalanceTransactionDetailRS, RechargeRQ } from '../types/balance';
+import { BalanceTransactionDetailRS, FarePaymentRQ, RechargeRQ } from '../types/balance';
 
 const USER_API = `${process.env.NEXT_PUBLIC_API_V1_URL}/user`;
 const PASSENGER_API = `${process.env.NEXT_PUBLIC_API_V1_URL}/passengers`;
@@ -36,6 +36,28 @@ export async function rechargePassengerBalance(id: number, data: RechargeRQ): Pr
 
   if (!res.ok) {
     throw new Error(`Error al recargar saldo: ${responseBody.message || res.status}`);
+  }
+
+  return responseBody;
+}
+
+/**
+ * Pagar tarifa de viaje con el saldo del pasajero
+ */
+export async function payPassengerFare(id: number, data: FarePaymentRQ): Promise<ApiResponse<BalanceTransactionDetailRS>> {
+  const res = await fetch(`${PASSENGER_API}/${id}/pay`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  const responseBody = await res.json();
+
+  if (!res.ok) {
+    console.log(JSON.stringify(responseBody, null, 2))
+    throw new Error(`Error al realizar el pago: ${responseBody.message || res.status}`);
   }
 
   return responseBody;
