@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowLeft, User, Lock, Settings, Mail, LogOut } from "lucide-react"
+import { logoutUser } from "@/app/auth/auth"
 
 interface PassengerSettingsProps {
   user?: {
@@ -28,7 +29,6 @@ export default function PassengerSettings({
   onBackClick,
   onUpdateProfile,
   onUpdatePassword,
-  onLogout,
 }: PassengerSettingsProps) {
   const [profileData, setProfileData] = useState({
     firstName: user.firstName,
@@ -72,7 +72,6 @@ export default function PassengerSettings({
 
     setIsUpdatingPassword(true)
 
-    // Simular llamada a API
     await new Promise((resolve) => setTimeout(resolve, 1000))
 
     onUpdatePassword?.(passwordData)
@@ -81,9 +80,10 @@ export default function PassengerSettings({
   }
 
   const router = useRouter()
-  const handleLogout = () => {
-    router.push("/")
-    onLogout?.()
+
+  const handleLogout = async () => {
+    await logoutUser(); 
+    router.push("/auth/login"); 
   }
 
   return (

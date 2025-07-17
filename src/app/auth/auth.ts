@@ -58,8 +58,8 @@ export async function loginUser(email: string, password: string) {
 }
 
 export async function refreshTokenIfNeeded() {
-  if (!isTokenExpired()) return;
-
+  console.log("🧪 ¿Token expirado?", isTokenExpired());
+  console.log("📦 refreshToken:", getRefreshToken());
   const refreshToken = getRefreshToken();
   if (!refreshToken) throw new Error("No refresh token");
 
@@ -77,7 +77,6 @@ export async function refreshTokenIfNeeded() {
     refreshToken: data.data.refreshToken,
     expiresIn: data.data.expiresIn,
   });
-  
 }
 
 export async function logoutUser() {
