@@ -58,7 +58,7 @@ export default function PassengerDashboard({
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24 lg:pb-6">
         {/* Welcome Section */}
         <div className="mb-6 sm:mb-8">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">¡Bienvenido, {user.name}!</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">¡Bienvenido/a, {user.name}!</h2>
           <p className="text-sm sm:text-base text-gray-600">Gestiona tu saldo y revisa tu historial de recargas</p>
         </div>
 
