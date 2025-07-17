@@ -4,11 +4,15 @@ import { useEffect, useState } from "react"
 import PassengerDashboard from "./passenger-dashboard"
 import PassengerSettings from "./passenger-settings"
 import QrScanner from "./qr-scanner"
+import { TransactionDetail } from "../customer"
+import { getPassengerBalanceHistory } from "../api"
 
 type View = "dashboard" | "settings" | "scanner"
 
 export default function CustomerVew() {
   const [currentView, setCurrentView] = useState<View>("dashboard")
+  const [transactions, setTransactions] = useState<TransactionDetail[]>([])
+
 
   const [user, setUser] = useState<null | {
     firstName: string
@@ -18,17 +22,47 @@ export default function CustomerVew() {
   }>(null)
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser)
-      setUser({
-        firstName: parsedUser.firstName,
-        lastName: parsedUser.lastName,
-        email: parsedUser.email,
-        balance: parsedUser.balance ?? 0,
+  const storedUser = localStorage.getItem("user")
+
+  if (storedUser) {
+    const parsedUser = JSON.parse(storedUser)
+    const id = parsedUser.id // o userId, asegúrate cómo lo guardas
+
+    setUser({
+      firstName: parsedUser.firstName,
+      lastName: parsedUser.lastName,
+      email: parsedUser.email,
+      balance: 0, // temporal
+    })
+
+    // Llamada a API balance + transacciones
+    getPassengerBalanceHistory(id)
+      .then((res) => {
+        if (res.data) {
+          setUser((prev) =>
+            prev ? { ...prev, balance: res.data!.currentBalance } : prev
+          )
+
+          setTransactions(res.data.transactions)
+        } else {
+          console.warn("No se recibió data en la respuesta")
+        }
+      })
+      .catch((err) => {
+        console.error("Error al obtener balance e historial:", err)
       })
     }
   }, [])
+
+  const recharges = transactions
+    .filter((t) => t.type === "RECHARGE")
+    .map((t, index) => ({
+      id: String(index + 1),
+      amount: t.amount,
+      date: t.transactionDate.split("T")[0], // solo fecha
+      method: t.description ?? "Desconocido",
+      status: t.type === "RECHARGE" ? "Recarga" : "Pago",
+    }))
 
   const handleConfigClick = () => setCurrentView("settings")
   const handleQrClick = () => setCurrentView("scanner")
@@ -86,6 +120,7 @@ export default function CustomerVew() {
       return (
         <PassengerDashboard
           user={{ name: `${user.firstName} ${user.lastName}`, balance: user.balance }}
+          recharges={recharges}
           onConfigClick={handleConfigClick}
           onQrClick={handleQrClick}
         />

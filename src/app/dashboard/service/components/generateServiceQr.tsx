@@ -5,9 +5,14 @@ import { getTripQrToken } from "../lib/api"
 
 export async function generateServiceQr(tripId: number, tripCode: string) {
   // 1. Obtener el token del backend
-  const { data: token } = await getTripQrToken(tripId)
-  // 2. Crear URL con token
-  const baseUrl = `${window.location.origin}/scan?token=${token}`
+  const { data } = await getTripQrToken(tripId);
+
+  // 2. Validar que el token se haya recibido correctamente
+  if (!data?.token) {
+    throw new Error("Token no recibido correctamente desde el backend");
+  }
+  // y construir la URL base para el QR
+  const baseUrl = `${window.location.origin}/scan?token=${data.token}`;
 
   // 3. Crear el ícono SVG de Bus en string (usamos Lucide)
   const busIcon = encodeURIComponent(

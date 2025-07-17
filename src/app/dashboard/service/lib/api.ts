@@ -114,7 +114,11 @@ export async function bulkDeleteTrips(data: BulkDeleteRQ): Promise<ApiResponse<B
 /**
  * Obtener un token JWT válido para QR de un servicio
  */
-export async function getTripQrToken(tripId: number): Promise<ApiResponse<string>> {
+interface TripQrToken {
+  token: string;
+}
+
+export async function getTripQrToken(tripId: number): Promise<ApiResponse<TripQrToken >> {
   const res = await fetch(`${BASE_URL}/${tripId}/qr-token`)
 
   const responseBody = await res.json()

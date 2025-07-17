@@ -28,7 +28,6 @@ import {
   Loader2,
   X,
   ArrowLeft,
-  RotateCcw,
 } from "lucide-react"
 import {
   AlertDialog,
@@ -40,6 +39,8 @@ import {
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
+import router from "next/router"
+import { validateTripQrToken } from "../api"
 
 type ScannerStatus = "ready" | "requesting_permissions" | "permissions_denied" | "scanning" | "qr_detected" | "error"
 
@@ -99,11 +100,22 @@ export default function QrScanner({ onBackClick, onScanSuccess}: QrScannerProps)
     }
   }, [scannerInstance])
 
-  const handleScanSuccess = (decodedText: string) => {
+  const handleScanSuccess = async (decodedText: string) => {
     try {
       if (hasScannedRef.current) return
       hasScannedRef.current = true
       setIsRescanning(false)
+      const token = extractTokenFromUrl(decodedText)
+      if (!token) {
+        toast.error("Código QR inválido o sin token")
+        setStatus("error")
+        return
+      }
+      // Validar token
+      const response = await validateTripQrToken(token)
+      const tripInfo = response.data
+      console.log("Trip validado:", tripInfo)
+
       setScannedResult(decodedText)
       setShowResultDialog(true)
       setStatus("qr_detected")
@@ -123,8 +135,17 @@ export default function QrScanner({ onBackClick, onScanSuccess}: QrScannerProps)
     }
   }
 
+  function extractTokenFromUrl(qrText: string): string | null {
+    try {
+      const url = new URL(qrText)
+      return url.searchParams.get("token")
+    } catch {
+      // Si no es una URL válida
+      return null
+    }
+  }
+
   const handleScanError = (errorMessage: string) => {
-    // Solo mostrar errores importantes
     if (errorMessage.includes("NotFoundException") === false) {
       console.warn("Error de escaneo:", errorMessage)
     }
@@ -218,13 +239,6 @@ export default function QrScanner({ onBackClick, onScanSuccess}: QrScannerProps)
     }
   }, [status])
 
-  const resetScanner = () => {
-    setScannedResult(null)
-    setShowResultDialog(false)
-    hasScannedRef.current = false
-    setIsRescanning(true)
-  }
-
   const handleDialogOpenChange = (open: boolean) => {
     setShowResultDialog(open)
     if (!open) {
@@ -233,18 +247,6 @@ export default function QrScanner({ onBackClick, onScanSuccess}: QrScannerProps)
         return
       }
       stopScanning()
-    }
-  }
-
-  const copyToClipboard = async () => {
-    if (scannedResult) {
-      try {
-        await navigator.clipboard.writeText(scannedResult)
-        toast.success("Texto copiado al portapapeles")
-      } catch (error: unknown) {
-        toast.error("No se pudo copiar al portapapeles")
-        console.log("Error al copiar al portapapeles:", error)
-      }
     }
   }
 
@@ -510,11 +512,6 @@ export default function QrScanner({ onBackClick, onScanSuccess}: QrScannerProps)
               </div>
             )}
 
-            {/* Contenido */}
-            <div className="p-4 bg-muted rounded-lg">
-              <p className="font-mono text-sm break-all">{scannedResult}</p>
-            </div>
-
             {/* Información del viaje */}
             <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
@@ -522,26 +519,17 @@ export default function QrScanner({ onBackClick, onScanSuccess}: QrScannerProps)
                 <span className="text-sm font-medium text-green-800">Viaje Registrado</span>
               </div>
               <p className="text-xs text-green-700">
-                Tu viaje ha sido registrado exitosamente. El costo será descontado de tu saldo.
+                Puedes continuar para seleccionar tus paraderos y confirmar tu viaje. El costo será descontado al finalizar el proceso.
               </p>
-            </div>
-
-            {/* Acciones */}
-            <div className="flex gap-2">
-              <Button onClick={copyToClipboard} variant="outline" className="gap-2 bg-transparent">
-                <Copy className="h-4 w-4" />
-                Copiar Código
-              </Button>
             </div>
           </div>
 
           <DialogFooter className="gap-2">
-            <Button onClick={resetScanner} className="gap-2">
-              <RotateCcw className="h-4 w-4" />
-              Escanear Otro
+            <Button onClick={() => router.push(`/abordar`)} className="gap-2">
+              Ir al formulario
             </Button>
             <Button variant="outline" onClick={() => handleDialogOpenChange(false)}>
-              Volver al Dashboard
+              Cancelar
             </Button>
           </DialogFooter>
         </DialogContent>
