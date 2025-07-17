@@ -44,3 +44,4 @@ export interface DriverStatusCountRS {
   status: DriverStatus
   count: number
 }
+

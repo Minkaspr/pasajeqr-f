@@ -1,15 +1,19 @@
 import { ApiResponse } from "@/types/api-response"
+
 import { DashboardStatsRS, DriverStatusCountRS, TransactionSummaryRS } from "./dashboard"
 
 const BASE_USER_URL = `${process.env.NEXT_PUBLIC_API_V1_URL}/user`
 const BASE_TRANSACTION_URL= `${process.env.NEXT_PUBLIC_API_V1_URL}/transactions`
 const BASE_DRIVER_URL = `${process.env.NEXT_PUBLIC_API_V1_URL}/drivers`
 
+
 /**
  * Obtener estadísticas de usuarios (pasajeros y conductores)
  */
 export async function getUserDashboardStats(): Promise<ApiResponse<DashboardStatsRS>> {
+
   const res = await fetch(`${BASE_USER_URL}/stats`)
+
   
   if (!res.ok) {
     const errorText = await res.text()
@@ -19,6 +23,7 @@ export async function getUserDashboardStats(): Promise<ApiResponse<DashboardStat
   const data = await res.json()
   return data
 }
+
 
 /**
  * Obtener resumen de transacciones (recargas y pagos) de los últimos 7 días
@@ -43,3 +48,4 @@ export async function fetchDriverStatusSummary(): Promise<ApiResponse<DriverStat
   }
   return res.json()
 }
+
