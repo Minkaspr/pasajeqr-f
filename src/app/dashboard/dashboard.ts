@@ -27,3 +27,20 @@ export type DashboardStatsRS = {
   yesterdayStops: number
   weeklyStops: number
 }
+
+export interface TransactionSummaryItem {
+  date: string
+  recargas: number
+  pagos: number
+}
+
+export interface TransactionSummaryRS {
+  data: TransactionSummaryItem[]
+}
+
+export type DriverStatus = 'AVAILABLE' | 'ON_SERVICE' | 'OFF_DUTY' | 'SICK_LEAVE'
+
+export interface DriverStatusCountRS {
+  status: DriverStatus
+  count: number
+}

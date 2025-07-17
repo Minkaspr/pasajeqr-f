@@ -5,6 +5,8 @@ import { Users, Car, MapPin, CreditCard } from "lucide-react";
 import { DashboardStatsRS } from "./dashboard";
 import { useEffect, useState } from "react";
 import { getUserDashboardStats } from "./api";
+import { TransactionChart } from "./transaction-chart";
+import { DriverChart } from "./DriverChart";
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStatsRS | null>(null)
@@ -61,7 +63,7 @@ export default function DashboardPage() {
 
           <Card className="border-l-4 border-l-emerald-600 bg-white shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">Conductores Activos</CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-600">Conductores Registrados</CardTitle>
               <Users className="h-5 w-5 text-emerald-600" />
             </CardHeader>
             <CardContent>
@@ -148,22 +150,22 @@ export default function DashboardPage() {
             <CardHeader>
               <CardTitle className="text-lg font-semibold text-slate-900 flex items-center gap-2">
                 <CreditCard className="h-5 w-5 text-blue-600" />
-                Transacciones por Mes
+                Actividad de Recargas y Pagos (Últimos 7 días)
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {/*<TransactionChart /> */}
+              <TransactionChart />
             </CardContent>
           </Card>
           <Card className="bg-white shadow-sm">
             <CardHeader>
               <CardTitle className="text-lg font-semibold text-slate-900 flex items-center gap-2">
                 <Users className="h-5 w-5 text-emerald-600" />
-                Distribución de Pasajeros
+                Estado Actual de los Conductores
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {/* <PassengerChart /> */}
+              <DriverChart />
             </CardContent>
           </Card>
         </div>
