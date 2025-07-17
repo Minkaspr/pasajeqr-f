@@ -584,6 +584,7 @@ export default function QrScanner({ onBackClick, onScanSuccess}: QrScannerProps)
                   }).toString();
 
                   router.push(`/customer/abordar?${params}`);
+                  handleDialogOpenChange(false)
                 }} className="gap-2">
                 Ir al formulario
               </Button>
