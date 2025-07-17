@@ -10,27 +10,22 @@ interface Recharge {
   amount: number
   date: string
   method: string
-  status: "completed" | "pending"
+  status: string
 }
 
 interface PassengerDashboardProps {
-  user?: {
+  user: {
     name: string
     balance: number
   }
-  recharges?: Recharge[]
+  recharges: Recharge[]
   onConfigClick?: () => void
   onQrClick?: () => void
 }
 
 export default function PassengerDashboard({
-  user = { name: "Juan Pérez", balance: 25.5 },
-  recharges = [
-    { id: "1", amount: 10.0, date: "2024-01-15", method: "Tarjeta", status: "completed" },
-    { id: "2", amount: 15.0, date: "2024-01-10", method: "Efectivo", status: "completed" },
-    { id: "3", amount: 20.0, date: "2024-01-05", method: "Transferencia", status: "completed" },
-    { id: "4", amount: 5.0, date: "2024-01-01", method: "Tarjeta", status: "completed" },
-  ],
+  user,
+  recharges,
   onConfigClick,
   onQrClick,
 }: PassengerDashboardProps) {
@@ -111,8 +106,8 @@ export default function PassengerDashboard({
                     </div>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <Badge variant={recharge.status === "completed" ? "default" : "secondary"} className="mb-1 text-xs">
-                      {recharge.status === "completed" ? "Completado" : "Pendiente"}
+                    <Badge variant={recharge.status === "PAYMENT" ? "default" : "secondary"} className="mb-1 text-xs">
+                      {recharge.status}
                     </Badge>
                     <p className="text-xs text-gray-500">{recharge.date}</p>
                   </div>
